@@ -108,7 +108,9 @@ fun LoginScreen(app: App, onDone: () -> Unit) {
         Modifier.fillMaxSize().safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
-        Text("BookOrbit", style = MaterialTheme.typography.headlineLarge)
+        Text("Companion Reader", style = MaterialTheme.typography.headlineLarge)
+        Text("An unofficial reader for your BookOrbit server", style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(24.dp))
         OutlinedTextField(server, { server = it }, label = { Text("Server URL") }, singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri), modifier = Modifier.fillMaxWidth())

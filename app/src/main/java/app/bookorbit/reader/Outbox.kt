@@ -123,7 +123,7 @@ class Outbox(private val file: File) {
     }
 
     /** Sends queued changes oldest first, stopping at the first one that can't be delivered. True when the queue is empty. */
-    suspend fun flush(api: BookOrbitApi): Boolean = flushLock.withLock {
+    suspend fun flush(api: ServerApi): Boolean = flushLock.withLock {
         while (true) {
             val op = synchronized(lock) { ops.firstOrNull() } ?: return@withLock true
             val sent = api.send(op)

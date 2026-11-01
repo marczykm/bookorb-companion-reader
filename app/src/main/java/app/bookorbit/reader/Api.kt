@@ -165,7 +165,7 @@ class Session(context: Context) {
     }
 }
 
-class BookOrbitApi(private val session: Session, val cacheDir: File, private val filesDir: File) {
+class ServerApi(private val session: Session, val cacheDir: File, private val filesDir: File) {
     lateinit var outbox: Outbox
 
     /** False while the last read had to fall back to saved data because the server couldn't be reached. */

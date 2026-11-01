@@ -1,6 +1,6 @@
-# BookOrbit: Unofficial companion app
+# Companion Reader
 
-An Android app for reading books from your own self-hosted [BookOrbit](https://github.com/bookorbit/bookorbit) server.
+An unofficial Android app for reading books from your own self-hosted [BookOrbit](https://github.com/bookorbit/bookorbit) server.
 
 > **This is a modified, unofficial version and is not an official BookOrbit release.** It is not approved, sponsored or endorsed by the BookOrbit project. First published 2026-11-01.
 >
@@ -47,4 +47,4 @@ The APK is written to `app/build/outputs/apk/debug/app-debug.apk`. Create a `loc
 
 AGPL-3.0-only, with the additional terms in [ADDITIONAL_TERMS.md](ADDITIONAL_TERMS.md) that apply to the BookOrbit material this project includes. See [LICENSE](LICENSE) and [NOTICE](NOTICE), which also credits foliate-js and the other components used. The in-app **About** dialog (the ⓘ button on Home) shows the required attribution.
 
-"BookOrbit" is the name of another project. The additional terms ask that a modified version not use it as its primary name or branding without permission, so if you fork this, give your fork its own name.
+"BookOrbit" is the name of another project. Its additional terms ask that a modified version not use that name as its primary name or branding without permission, so this app is called Companion Reader and mentions BookOrbit only to say what it works with. If you fork it, give your fork its own name too.

@@ -224,7 +224,7 @@ class ReaderActivity : AppCompatActivity() {
         kotlinx.coroutines.suspendCancellableCoroutine { cont ->
             val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Continue from another device?")
-                .setMessage("BookOrbit is at ${serverPct.toInt()}%, this device is at ${localPct.toInt()}%.")
+                .setMessage("Your server is at ${serverPct.toInt()}%, this device is at ${localPct.toInt()}%.")
                 .setCancelable(false)
                 .setPositiveButton("Jump to ${serverPct.toInt()}%") { _, _ -> if (cont.isActive) cont.resumeWith(Result.success(true)) }
                 .setNegativeButton("Stay here") { _, _ -> if (cont.isActive) cont.resumeWith(Result.success(false)) }

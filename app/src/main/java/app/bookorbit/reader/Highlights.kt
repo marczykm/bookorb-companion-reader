@@ -37,7 +37,7 @@ import org.readium.r2.shared.util.mediatype.MediaType
 class HighlightSync(
     private val activity: AppCompatActivity,
     private val pub: Publication,
-    private val api: BookOrbitApi,
+    private val api: ServerApi,
     private val bookId: Long,
     private val fileId: Long,
 ) {

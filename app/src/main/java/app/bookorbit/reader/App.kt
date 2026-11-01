@@ -12,7 +12,7 @@ import java.io.File
 
 class App : Application(), ImageLoaderFactory {
     lateinit var session: Session
-    lateinit var api: BookOrbitApi
+    lateinit var api: ServerApi
     lateinit var outbox: Outbox
     val appScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
 
@@ -22,7 +22,7 @@ class App : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
         session = Session(this)
-        api = BookOrbitApi(session, cacheDir, filesDir)
+        api = ServerApi(session, cacheDir, filesDir)
         outbox = Outbox(File(filesDir, "outbox.json"))
         api.outbox = outbox
 

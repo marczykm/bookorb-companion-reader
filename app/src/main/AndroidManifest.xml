@@ -7,9 +7,9 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:label="BookOrbit: Unofficial companion app"
+        android:label="Companion Reader"
         android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.BookOrbit">
+        android:theme="@style/Theme.CompanionReader">
         <activity
             android:name=".MainActivity"
             android:exported="true">
