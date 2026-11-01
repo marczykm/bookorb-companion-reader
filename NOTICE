@@ -1,0 +1,39 @@
+BookOrbit: Unofficial companion app
+
+This is a modified, unofficial work that uses material from BookOrbit. It is
+not an official BookOrbit release and is not approved, sponsored or endorsed by
+the BookOrbit project. First published 2026-11-01.
+
+    Powered by BookOrbit
+    Copyright (C) 2025-2026 neon.
+    Additional copyright is held by the respective BookOrbit contributors.
+    Original project: https://github.com/bookorbit/bookorbit
+
+    Licensed under the GNU Affero General Public License, version 3 only, with
+    additional terms (see LICENSE and ADDITIONAL_TERMS.md). This software is
+    provided without warranty.
+
+BookOrbit material in this project
+----------------------------------
+- Reading companion artwork (app/src/main/assets/pets/*.json), converted from
+  the pixel art in the BookOrbit KOReader plugin.
+- The behaviour of the Home screen and companions follows that plugin.
+- The server API this app talks to belongs to BookOrbit and is described by its
+  source code.
+
+Other notices
+-------------
+foliate-js (MIT License), https://github.com/johnfactotum/foliate-js
+  app/src/main/assets/epubcfi.js is adapted from foliate-js's epubcfi.js, the
+  EPUB CFI code used by BookOrbit's web reader.
+  Copyright (c) John Factotum. Permission is granted, free of charge, to use,
+  copy, modify, merge, publish, distribute, sublicense and sell copies, subject
+  to this notice being included, and the software is provided "as is" without
+  warranty of any kind. See the foliate-js repository for the full MIT text.
+
+Material Design icons (Apache License 2.0), https://github.com/google/material-design-icons
+  The launcher icon glyph is the "AutoStories" icon.
+
+Libraries used, under their own licenses: Readium Kotlin Toolkit (BSD 3-Clause),
+OkHttp, Coil, WorkManager, AndroidX and Jetpack Compose (Apache 2.0), and
+kotlinx.serialization and kotlinx.coroutines (Apache 2.0).
