@@ -64,13 +64,24 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(app: App, onLogout: () -> Unit) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var settingsOpen by rememberSaveable { mutableStateOf(false) }
+    var appsOpen by rememberSaveable { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
     // Settings is a page of its own, reached with the gear in each tab's top bar; Back returns to the tab.
     if (settingsOpen) {
         androidx.activity.compose.BackHandler { settingsOpen = false }
         SettingsScreen(onBack = { settingsOpen = false })
         return
     }
+    if (appsOpen) {
+        androidx.activity.compose.BackHandler { appsOpen = false }
+        AppsScreen(onBack = { appsOpen = false })
+        return
+    }
     val openSettings = { settingsOpen = true }
+    // The All apps shortcut only appears once the Home entry is switched on in Settings.
+    val openApps: (() -> Unit)? = if (Launcher.isEnabled(context)) ({ appsOpen = true }) else null
+    // As the Home app, Back must not close the screen the phone returns to; it goes to the Home tab instead.
+    androidx.activity.compose.BackHandler(enabled = Launcher.isDefaultHome(context)) { tab = 0 }
     Scaffold(
         bottomBar = {
             NavigationBar {
@@ -82,7 +93,7 @@ fun MainScreen(app: App, onLogout: () -> Unit) {
     ) { padding ->
         Box(Modifier.padding(padding)) {
             when (tab) {
-                0 -> HomeScreen(app, onLogout, openSettings)
+                0 -> HomeScreen(app, onLogout, openSettings, openApps)
                 1 -> LibraryScreen(app, onLogout, openSettings)
                 else -> BrowseScreen(app, onLogout, openSettings)
             }
