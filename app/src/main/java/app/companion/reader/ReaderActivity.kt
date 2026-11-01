@@ -126,10 +126,13 @@ class ReaderActivity : AppCompatActivity() {
         val spinner = ProgressBar(this)
         val chrome = ReaderChrome(this).also { chromeBars = it }
         chrome.applyTheme(readerSettings.theme)
+        val swipeLayout = SwipeTurnLayout(this, canSwipe = { highlights?.selecting != true }) { forward ->
+            navigator?.let { if (forward) it.goForward(animated = false) else it.goBackward(animated = false) }
+        }.apply { addView(container, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT) }
         val column = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             addView(chrome.top, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-            addView(container, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+            addView(swipeLayout, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
             addView(chrome.bottom, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (28 * resources.displayMetrics.density).toInt()))
         }
         val root = FrameLayout(this).apply {
@@ -245,8 +248,8 @@ class ReaderActivity : AppCompatActivity() {
         override fun onTap(event: TapEvent): Boolean {
             val width = nav.requireView().width
             return when {
-                event.point.x < width * 0.2f -> nav.goBackward(animated = true)
-                event.point.x > width * 0.8f -> nav.goForward(animated = true)
+                event.point.x < width * 0.2f -> nav.goBackward(animated = false)
+                event.point.x > width * 0.8f -> nav.goForward(animated = false)
                 else -> {
                     // Middle of the page: show or hide the toolbar.
                     runOnUiThread { toolbar?.let { it.visibility = if (it.visibility == View.VISIBLE) View.GONE else View.VISIBLE } }
@@ -261,7 +264,7 @@ class ReaderActivity : AppCompatActivity() {
         val nav = navigator
         if (nav != null && readerSettings.volumeKeys && (keyCode == android.view.KeyEvent.KEYCODE_VOLUME_UP || keyCode == android.view.KeyEvent.KEYCODE_VOLUME_DOWN)) {
             if (event.repeatCount == 0) {
-                if (keyCode == android.view.KeyEvent.KEYCODE_VOLUME_DOWN) nav.goForward(animated = true) else nav.goBackward(animated = true)
+                if (keyCode == android.view.KeyEvent.KEYCODE_VOLUME_DOWN) nav.goForward(animated = false) else nav.goBackward(animated = false)
             }
             return true
         }

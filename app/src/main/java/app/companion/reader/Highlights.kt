@@ -42,6 +42,9 @@ class HighlightSync(
     private val fileId: Long,
 ) {
     var nav: EpubNavigatorFragment? = null
+
+    /** True while a text selection (and its menu) is on screen; swiping then moves the selection handles. */
+    @Volatile var selecting = false
     private val items = linkedMapOf<Long, Annotation>()
 
     /** Text just before and after each highlight, so a quote that repeats in a chapter lands on the right one. */
@@ -53,6 +56,7 @@ class HighlightSync(
     val selectionCallback = object : ActionMode.Callback {
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
             menu.add(Menu.NONE, MENU_HIGHLIGHT, Menu.FIRST, "Highlight")
+            selecting = true
             return true
         }
 
@@ -71,7 +75,7 @@ class HighlightSync(
             return true
         }
 
-        override fun onDestroyActionMode(mode: ActionMode) {}
+        override fun onDestroyActionMode(mode: ActionMode) { selecting = false }
     }
 
     val decorationListener = object : DecorableNavigator.Listener {
