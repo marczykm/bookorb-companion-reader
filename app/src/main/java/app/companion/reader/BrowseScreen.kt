@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,7 +33,7 @@ private data class Opened(val kind: Int, val id: Long, val title: String)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BrowseScreen(app: App, onLogout: () -> Unit) {
+fun BrowseScreen(app: App, onLogout: () -> Unit, onOpenSettings: () -> Unit) {
     var opened by remember { mutableStateOf<Opened?>(null) }
     BackHandler(enabled = opened != null) { opened = null }
     opened?.let { o ->
@@ -93,7 +94,12 @@ fun BrowseScreen(app: App, onLogout: () -> Unit) {
     val nearEnd by remember { derivedStateOf { (list.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1) >= count - 5 && count > 0 } }
     LaunchedEffect(nearEnd) { if (nearEnd && count < total && !loading) load(false) }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Browse") }, actions = { OfflineIcon(app) }) }) { padding ->
+    Scaffold(topBar = {
+        TopAppBar(title = { Text("Browse") }, actions = {
+            OfflineIcon(app)
+            IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, "Settings") }
+        })
+    }) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
             OfflineBanner(app, count > 0)
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {

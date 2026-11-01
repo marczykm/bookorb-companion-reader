@@ -17,6 +17,7 @@ import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
@@ -41,7 +42,7 @@ internal val STATUSES = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LibraryScreen(app: App, onLogout: () -> Unit) {
+fun LibraryScreen(app: App, onLogout: () -> Unit, onOpenSettings: () -> Unit) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val books = remember { mutableStateListOf<BookCard>() }
@@ -106,6 +107,7 @@ fun LibraryScreen(app: App, onLogout: () -> Unit) {
                     IconButton(onClick = { gridView = !gridView }) {
                         Icon(if (gridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView, "Switch view")
                     }
+                    IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, "Settings") }
                     IconButton(onClick = { scope.launch { app.api.logout(); onLogout() } }) { Icon(Icons.AutoMirrored.Filled.Logout, "Sign out") }
                 },
             )

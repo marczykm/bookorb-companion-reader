@@ -17,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
@@ -62,22 +63,28 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(app: App, onLogout: () -> Unit) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
+    var settingsOpen by rememberSaveable { mutableStateOf(false) }
+    // Settings is a page of its own, reached with the gear in each tab's top bar; Back returns to the tab.
+    if (settingsOpen) {
+        androidx.activity.compose.BackHandler { settingsOpen = false }
+        SettingsScreen(onBack = { settingsOpen = false })
+        return
+    }
+    val openSettings = { settingsOpen = true }
     Scaffold(
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(tab == 0, { tab = 0 }, { Icon(Icons.Default.Home, null) }, label = { Text("Home") })
-                NavigationBarItem(tab == 1, { tab = 1 }, { Icon(Icons.Default.Search, null) }, label = { Text("Library") })
+                NavigationBarItem(tab == 1, { tab = 1 }, { Icon(Icons.AutoMirrored.Filled.LibraryBooks, null) }, label = { Text("Library") })
                 NavigationBarItem(tab == 2, { tab = 2 }, { Icon(Icons.Default.Menu, null) }, label = { Text("Browse") })
-                NavigationBarItem(tab == 3, { tab = 3 }, { Icon(Icons.Default.Settings, null) }, label = { Text("Settings") })
             }
         },
     ) { padding ->
         Box(Modifier.padding(padding)) {
             when (tab) {
-                0 -> HomeScreen(app, onLogout)
-                1 -> LibraryScreen(app, onLogout)
-                2 -> BrowseScreen(app, onLogout)
-                else -> SettingsScreen()
+                0 -> HomeScreen(app, onLogout, openSettings)
+                1 -> LibraryScreen(app, onLogout, openSettings)
+                else -> BrowseScreen(app, onLogout, openSettings)
             }
         }
     }

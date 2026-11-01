@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,7 +45,7 @@ fun openBook(context: Context, book: BookCard): Boolean {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(app: App, onLogout: () -> Unit) {
+fun HomeScreen(app: App, onLogout: () -> Unit, onOpenSettings: () -> Unit) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var shelves by remember { mutableStateOf<Map<String, List<BookCard>>>(emptyMap()) }
@@ -100,6 +101,7 @@ fun HomeScreen(app: App, onLogout: () -> Unit) {
                     IconButton(onClick = { customizing = true }) { Icon(Icons.Default.Edit, "Customize Home") }
                     IconButton(onClick = { showAbout = true }) { Icon(Icons.Default.Info, "About") }
                     IconButton(onClick = { load() }) { Icon(Icons.Default.Refresh, "Refresh") }
+                    IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, "Settings") }
                     IconButton(onClick = { scope.launch { app.api.logout(); onLogout() } }) {
                         Icon(Icons.AutoMirrored.Filled.Logout, "Sign out")
                     }
