@@ -11,6 +11,8 @@ import androidx.appcompat.app.AlertDialog
 import org.readium.r2.navigator.epub.EpubPreferences
 import org.readium.r2.navigator.preferences.Theme
 
+const val DEFAULT_WORDS_PER_MINUTE = 230.0
+
 /** How the book is drawn, kept on the device and shared by every book. */
 class ReaderSettings(context: Context) {
     private val prefs = context.getSharedPreferences("reader", Context.MODE_PRIVATE)
@@ -29,6 +31,11 @@ class ReaderSettings(context: Context) {
     var volumeKeys: Boolean
         get() = prefs.getBoolean("volumeKeys", true)
         set(v) = prefs.edit().putBoolean("volumeKeys", v).apply()
+
+    /** Words per minute learned from the user's own reading; 0 until there is enough to go on. */
+    var learnedPace: Double
+        get() = prefs.getFloat("learnedPace", 0f).toDouble()
+        set(v) = prefs.edit().putFloat("learnedPace", v.toFloat()).apply()
 
     var theme: String
         get() = prefs.getString("theme", "light") ?: "light"
@@ -99,6 +106,13 @@ fun showReaderSettings(context: Context, settings: ReaderSettings, onChange: () 
             setPadding(pad(4), pad(8), 0, pad(8))
             setOnCheckedChangeListener { _, checked -> settings.volumeKeys = checked }
         })
+        addView(TextView(context).apply {
+            val pace = settings.learnedPace
+            text = if (pace > 0) "Reading speed: about ${pace.toInt()} words/min (learned from your reading)"
+            else "Reading speed: ${DEFAULT_WORDS_PER_MINUTE.toInt()} words/min (until it learns yours)"
+            textSize = 13f
+            setPadding(pad(4), pad(4), 0, pad(4))
+        })
         addView(TextView(context).apply { text = "Theme"; textSize = 15f; setPadding(0, pad(12), 0, 0) })
         addView(RadioGroup(context).apply {
             orientation = RadioGroup.HORIZONTAL
@@ -118,7 +132,7 @@ fun showReaderSettings(context: Context, settings: ReaderSettings, onChange: () 
         .setView(content)
         .setPositiveButton("Done", null)
         .setNeutralButton("Reset") { _, _ ->
-            settings.fontSize = 1.0; settings.margins = 1.0; settings.theme = "light"; settings.volumeKeys = true; onChange()
+            settings.fontSize = 1.0; settings.margins = 1.0; settings.theme = "light"; settings.volumeKeys = true; settings.learnedPace = 0.0; onChange()
         }
         .show()
 }

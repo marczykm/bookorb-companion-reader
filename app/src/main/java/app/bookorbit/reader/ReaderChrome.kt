@@ -88,7 +88,21 @@ class ReaderChrome(private val activity: AppCompatActivity) {
         addView(batteryText, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
     }
 
-    val bottom: View = progressView.also { it.minimumHeight = px(28) }
+    private val minutesText = TextView(activity).apply {
+        textSize = 12f; gravity = Gravity.END or Gravity.CENTER_VERTICAL; maxLines = 1
+    }
+
+    /** The progress bar with the time left in the chapter beside it. */
+    val bottom: LinearLayout = LinearLayout(activity).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+        addView(progressView, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
+        addView(minutesText, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT).apply {
+            marginEnd = px(16); marginStart = px(4)
+        })
+    }
+
+    fun setMinutesLeft(text: String) { minutesText.text = text }
 
     private var chapters: List<Chapter> = emptyList()
     private var textColor = 0xFF555555.toInt()
@@ -118,8 +132,8 @@ class ReaderChrome(private val activity: AppCompatActivity) {
         backgroundColor = bg
         textColor = text
         top.setBackgroundColor(bg)
-        progressView.setBackgroundColor(bg)
-        listOf(chapterText, clockText, batteryText).forEach { it.setTextColor(text) }
+        bottom.setBackgroundColor(bg)
+        listOf(chapterText, clockText, batteryText, minutesText).forEach { it.setTextColor(text) }
         progressView.fillColor = fill
         progressView.trackColor = (text and 0x00FFFFFF) or 0x40000000
         progressView.markColor = (text and 0x00FFFFFF) or 0xAA000000.toInt()

@@ -47,6 +47,16 @@ class ReaderActivity : AppCompatActivity() {
     private val readerSettings by lazy { ReaderSettings(this) }
     private var toolbar: View? = null
     private var chromeBars: ReaderChrome? = null
+
+    // For "minutes left in chapter": words in each resource, and which resources open a chapter.
+    private var wordsByResource: IntArray? = null
+    private var chapterStartIndexes: List<Int> = emptyList()
+
+    // Learning the reader's pace: words moved forward per second of active reading, this session.
+    private var lastWordPosition: Double? = null
+    private var lastSampleAt: Long? = null
+    private var paceWords = 0.0
+    private var paceSeconds = 0.0
     private var bookId = 0L
     private var highlights: HighlightSync? = null
     private var firstResume = true
@@ -96,6 +106,8 @@ class ReaderActivity : AppCompatActivity() {
         super.onResume()
         // Pick up highlights edited on the web while the app was in the background.
         if (!firstResume && bookId != 0L) lifecycleScope.launch { highlights?.sync() }
+        // The pace may have just been updated, so redo the estimate rather than wait for the next page turn.
+        navigator?.currentLocator?.value?.let { chromeBars?.setMinutesLeft(minutesLeftText(it)) }
         firstResume = false
         lastActivity = android.os.SystemClock.elapsedRealtime()
     }
@@ -184,7 +196,12 @@ class ReaderActivity : AppCompatActivity() {
                 val nav = supportFragmentManager.findFragmentByTag("reader") as EpubNavigatorFragment
                 navigator = nav
                 nav.addInputListener(edgeTapListener(nav))
-                launch { chromeBars?.setChapters(chaptersOf(pub)); chromeBars?.update(nav.currentLocator.value.locations.totalProgression, nav.currentLocator.value.title) }
+                launch {
+                    chromeBars?.setChapters(chaptersOf(pub))
+                    chromeBars?.update(nav.currentLocator.value.locations.totalProgression, nav.currentLocator.value.title)
+                    buildReadingModel(pub)
+                    chromeBars?.setMinutesLeft(minutesLeftText(nav.currentLocator.value))
+                }
                 hl.nav = nav
                 nav.addDecorationListener(HighlightSync.GROUP, hl.decorationListener)
                 if (bookId != 0L) {
@@ -256,6 +273,105 @@ class ReaderActivity : AppCompatActivity() {
         return super.onKeyUp(keyCode, event)
     }
 
+    /** Counts the words in every resource, once, so the time left in a chapter can be estimated. */
+    private suspend fun buildReadingModel(pub: Publication) {
+        fun key(url: Any) = url.toString().substringBefore('#')
+        val order = pub.readingOrder
+        val words = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            IntArray(order.size) { i ->
+                val resource = pub.get(order[i]) ?: return@IntArray 0
+                try {
+                    val text = resource.read().getOrElse { null }?.toString(Charsets.UTF_8) ?: return@IntArray 0
+                    val plain = text.replace(Regex("(?is)<(script|style)[^>]*>.*?</\\1>"), " ").replace(Regex("<[^>]+>"), " ")
+                    Regex("\\S+").findAll(plain).count()
+                } finally {
+                    resource.close()
+                }
+            }
+        }
+        val indexByHref = order.withIndex().associate { (i, link) -> key(link.url()) to i }
+        val starts = sortedSetOf<Int>()
+        fun walk(links: List<org.readium.r2.shared.publication.Link>) {
+            for (link in links) {
+                indexByHref[key(link.url())]?.let { starts.add(it) }
+                walk(link.children)
+            }
+        }
+        walk(pub.tableOfContents)
+        chapterStartIndexes = starts.toList()
+        wordsByResource = words
+    }
+
+    /** How many words into the book [loc] is, or null while word counts are still being made. */
+    private fun wordPosition(loc: Locator): Double? {
+        val words = wordsByResource ?: return null
+        val pub = publication ?: return null
+        val href = loc.href.toString().substringBefore('#')
+        val index = pub.readingOrder.indexOfFirst { it.url().toString().substringBefore('#') == href }
+        if (index < 0) return null
+        var before = 0.0
+        for (i in 0 until index) before += words[i]
+        return before + words[index] * (loc.locations.progression ?: 0.0).coerceIn(0.0, 1.0)
+    }
+
+    /**
+     * Records one reading step. Only ordinary page turns count: forward, a plausible number of words,
+     * and a plausible time (not a flick through pages, not a pause), so jumps and skimming don't skew it.
+     */
+    private fun samplePace(loc: Locator) {
+        val position = wordPosition(loc) ?: return
+        val now = android.os.SystemClock.elapsedRealtime()
+        val previous = lastWordPosition
+        val since = lastSampleAt
+        if (previous != null && since != null) {
+            val words = position - previous
+            val seconds = (now - since) / 1000.0
+            if (words in 20.0..900.0 && seconds in 3.0..120.0 && words / seconds * 60 <= 1000) {
+                paceWords += words
+                paceSeconds += seconds
+            }
+        }
+        lastWordPosition = position
+        lastSampleAt = now
+    }
+
+    /** Pace used for the estimate: what was learned before, nudged by this session once it has enough to say. */
+    private fun currentPace(): Double {
+        val stored = readerSettings.learnedPace.takeIf { it > 0 } ?: DEFAULT_WORDS_PER_MINUTE
+        if (paceSeconds < 90) return stored
+        val session = (paceWords / paceSeconds * 60).coerceIn(MIN_PACE, MAX_PACE)
+        return (stored + session) / 2
+    }
+
+    /** Folds this session's pace into the saved one (30% new, 70% old) so one odd session can't swing it. */
+    private fun commitPace() {
+        if (paceSeconds >= 60) {
+            val session = (paceWords / paceSeconds * 60).coerceIn(MIN_PACE, MAX_PACE)
+            val old = readerSettings.learnedPace
+            readerSettings.learnedPace = if (old > 0) old * 0.7 + session * 0.3 else session
+            paceWords = 0.0
+            paceSeconds = 0.0
+        }
+        lastWordPosition = null
+        lastSampleAt = null
+    }
+
+    /** "12 min left" for the rest of the current chapter at a typical reading speed, or empty until it is known. */
+    private fun minutesLeftText(loc: Locator): String {
+        val words = wordsByResource ?: return ""
+        val pub = publication ?: return ""
+        val href = loc.href.toString().substringBefore('#')
+        val index = pub.readingOrder.indexOfFirst { it.url().toString().substringBefore('#') == href }
+        if (index < 0) return ""
+        // The chapter ends where the next one starts; with no table of contents it runs to the end of the book.
+        val end = chapterStartIndexes.firstOrNull { it > index } ?: words.size
+        val within = (loc.locations.progression ?: 0.0).coerceIn(0.0, 1.0)
+        var remaining = words[index] * (1 - within)
+        for (i in index + 1 until end) remaining += words[i]
+        val minutes = Math.round(remaining / currentPace()).toInt()
+        return if (remaining < 10) "<1 min left" else "${maxOf(minutes, 1)} min left"
+    }
+
     /** Where each table-of-contents chapter starts, as a fraction of the book. */
     private suspend fun chaptersOf(pub: Publication): List<Chapter> {
         val positions = pub.positions()
@@ -289,7 +405,9 @@ class ReaderActivity : AppCompatActivity() {
     private fun trackProgress(nav: EpubNavigatorFragment) {
         lifecycleScope.launch {
             nav.currentLocator.collect { loc ->
+                samplePace(loc)
                 chromeBars?.update(loc.locations.totalProgression, loc.title)
+                chromeBars?.setMinutesLeft(minutesLeftText(loc))
                 touchActivity()
                 loc.locations.totalProgression?.let { p ->
                     if (openedAt == null) openedAt = p else if (p != openedAt) moved = true
@@ -317,6 +435,7 @@ class ReaderActivity : AppCompatActivity() {
         super.onPause()
         touchActivity()
         lastActivity = null
+        commitPace()
         // GlobalScope-free: the app scope outlives this activity, so the upload survives finish().
         (application as App).appScope.launch { uploadSession() }
         navigator?.currentLocator?.value?.let { loc ->
@@ -340,5 +459,7 @@ class ReaderActivity : AppCompatActivity() {
         const val EXTRA_FILE_ID = "fileId"
         const val EXTRA_BOOK_ID = "bookId"
         private const val IDLE_LIMIT_MS = 120_000L
+        private const val MIN_PACE = 80.0
+        private const val MAX_PACE = 600.0
     }
 }
