@@ -41,10 +41,11 @@ fun BrowseScreen(app: App, onLogout: () -> Unit) {
     }
 
     val scope = rememberCoroutineScope()
-    var mode by rememberSaveable { mutableIntStateOf(0) } // 0 series, 1 authors
+    var mode by rememberSaveable { mutableIntStateOf(0) } // 0 series, 1 authors, 2 SmartScopes
     var query by remember { mutableStateOf("") }
     val series = remember { mutableStateListOf<SeriesItem>() }
     val authors = remember { mutableStateListOf<AuthorItem>() }
+    val scopes = remember { mutableStateListOf<SmartScopeItem>() }
     var total by remember { mutableIntStateOf(0) }
     var page by remember { mutableIntStateOf(0) }
     var loading by remember { mutableStateOf(false) }
@@ -57,12 +58,20 @@ fun BrowseScreen(app: App, onLogout: () -> Unit) {
         val target = if (reset) 0 else page + 1
         scope.launch {
             try {
-                if (mode == 0) {
-                    val r = app.api.series(query, target)
-                    if (reset) series.clear(); series.addAll(r.items); total = r.total
-                } else {
-                    val r = app.api.authors(query, target)
-                    if (reset) authors.clear(); authors.addAll(r.items); total = r.total
+                when (mode) {
+                    0 -> {
+                        val r = app.api.series(query, target)
+                        if (reset) series.clear(); series.addAll(r.items); total = r.total
+                    }
+                    1 -> {
+                        val r = app.api.authors(query, target)
+                        if (reset) authors.clear(); authors.addAll(r.items); total = r.total
+                    }
+                    else -> {
+                        // SmartScopes come back in one piece; the search box filters them here.
+                        val all = app.api.smartScopes().filter { query.isBlank() || it.name.contains(query.trim(), ignoreCase = true) }
+                        scopes.clear(); scopes.addAll(all); total = all.size
+                    }
                 }
                 page = target
             } catch (e: AuthException) {
@@ -80,7 +89,7 @@ fun BrowseScreen(app: App, onLogout: () -> Unit) {
         if (query.isNotEmpty()) delay(400)
         load(true)
     }
-    val count = if (mode == 0) series.size else authors.size
+    val count = when (mode) { 0 -> series.size; 1 -> authors.size; else -> scopes.size }
     val nearEnd by remember { derivedStateOf { (list.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1) >= count - 5 && count > 0 } }
     LaunchedEffect(nearEnd) { if (nearEnd && count < total && !loading) load(false) }
 
@@ -88,10 +97,11 @@ fun BrowseScreen(app: App, onLogout: () -> Unit) {
         Column(Modifier.padding(padding).fillMaxSize()) {
             OfflineBanner(app, count > 0)
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                SegmentedButton(mode == 0, { mode = 0 }, SegmentedButtonDefaults.itemShape(0, 2)) { Text("Series") }
-                SegmentedButton(mode == 1, { mode = 1 }, SegmentedButtonDefaults.itemShape(1, 2)) { Text("Authors") }
+                SegmentedButton(mode == 0, { mode = 0 }, SegmentedButtonDefaults.itemShape(0, 3)) { Text("Series") }
+                SegmentedButton(mode == 1, { mode = 1 }, SegmentedButtonDefaults.itemShape(1, 3)) { Text("Authors") }
+                SegmentedButton(mode == 2, { mode = 2 }, SegmentedButtonDefaults.itemShape(2, 3)) { Text("SmartScopes", maxLines = 1) }
             }
-            OutlinedTextField(query, { query = it }, singleLine = true, label = { Text(if (mode == 0) "Search series" else "Search authors") },
+            OutlinedTextField(query, { query = it }, singleLine = true, label = { Text(when (mode) { 0 -> "Search series"; 1 -> "Search authors"; else -> "Search SmartScopes" }) },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 LazyColumn(state = list, contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -99,9 +109,13 @@ fun BrowseScreen(app: App, onLogout: () -> Unit) {
                         BrowseRow(app, s.coverBookIds.firstOrNull(), s.name,
                             "${s.readCount}/${s.bookCount} read" + s.authors.takeIf { it.isNotEmpty() }?.let { " · " + it.joinToString() }.orEmpty(),
                             round = false) { opened = Opened(0, s.id, s.name) }
-                    } else items(authors, key = { it.id }) { a ->
+                    } else if (mode == 1) items(authors, key = { it.id }) { a ->
                         BrowseRow(app, a.coverBookId, a.name, "${a.bookCount} book" + if (a.bookCount == 1) "" else "s", round = true) {
                             opened = Opened(1, a.id, a.name)
+                        }
+                    } else items(scopes, key = { it.id }) { sc ->
+                        BrowseRow(app, null, sc.name, sc.bookCount?.let { "$it book" + if (it == 1) "" else "s" } ?: "SmartScope", round = false) {
+                            opened = Opened(2, sc.id, sc.name)
                         }
                     }
                 }
@@ -157,7 +171,11 @@ private fun BooksOf(app: App, o: Opened, onBack: () -> Unit, onLogout: () -> Uni
         val target = if (reset) 0 else page + 1
         scope.launch {
             try {
-                val r = if (o.kind == 0) app.api.seriesBooks(o.id, target) else app.api.authorBooks(o.id, target)
+                val r = when (o.kind) {
+                    0 -> app.api.seriesBooks(o.id, target)
+                    1 -> app.api.authorBooks(o.id, target)
+                    else -> app.api.smartScopeBooks(o.id, target)
+                }
                 if (reset) books.clear()
                 books.addAll(r.items); total = r.total; page = target
             } catch (e: AuthException) {

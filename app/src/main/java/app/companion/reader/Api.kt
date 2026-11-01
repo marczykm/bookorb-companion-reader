@@ -142,6 +142,9 @@ private data class NewAnnotation(val cfi: String, val bookFileId: Long, val text
 @Serializable
 private data class AnnotationPatch(val color: String)
 
+@Serializable
+data class SmartScopeItem(val id: Long, val name: String, val bookCount: Int? = null)
+
 class AuthException(message: String) : IOException(message)
 
 /** Persisted server URL and tokens. */
@@ -385,6 +388,15 @@ class ServerApi(private val session: Session, val cacheDir: File, private val fi
 
     suspend fun seriesBooks(id: Long, page: Int): BooksPage = withContext(Dispatchers.IO) {
         get("/series/$id/books", q(null, page)) { json.decodeFromString<BooksPage>(it).withPending() }
+    }
+
+    /** The user's SmartScopes (saved filters). The server returns them all at once, in the user's order. */
+    suspend fun smartScopes(): List<SmartScopeItem> = withContext(Dispatchers.IO) {
+        get("/smart-scopes", emptyMap()) { json.decodeFromString<List<SmartScopeItem>>(it) }
+    }
+
+    suspend fun smartScopeBooks(id: Long, page: Int): BooksPage = withContext(Dispatchers.IO) {
+        get("/smart-scopes/$id/books", q(null, page)) { json.decodeFromString<BooksPage>(it).withPending() }
     }
 
     suspend fun authors(query: String?, page: Int): AuthorsPage = withContext(Dispatchers.IO) {

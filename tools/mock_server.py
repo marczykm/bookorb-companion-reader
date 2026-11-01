@@ -163,6 +163,13 @@ class H(BaseHTTPRequestHandler):
             return self.send(200, dict(items=items, total=len(items), page=0, size=50))
         m = re.fullmatch(r"/series/(\d+)/books", p)
         if m: names = sorted({b["seriesName"] for b in BOOKS.values() if b["seriesName"]}); n = names[int(m[1]) - 1] if False else list({b["seriesName"]: 1 for b in BOOKS.values() if b["seriesName"]})[int(m[1]) - 1]; items = [b for b in BOOKS.values() if b["seriesName"] == n]; return self.send(200, dict(items=items, total=len(items), page=0, size=50))
+        SCOPES = {1: ("Unread classics", [1, 3]), 2: ("Short reads", [2, 4, 5]), 3: ("Empty scope", [])}
+        if p == "/smart-scopes":
+            return self.send(200, [dict(id=i, name=n, bookCount=len(ids), userId=1, icon=None, filter=None, defaultSort=[], isPublic=False, isOwner=True) for i, (n, ids) in SCOPES.items()])
+        m = re.fullmatch(r"/smart-scopes/(\d+)/books", p)
+        if m:
+            ids = SCOPES[int(m[1])][1]; items = [BOOKS[i] for i in ids]
+            return self.send(200, dict(items=items, total=len(items), page=0, size=50))
         if p == "/authors":
             names = sorted({b["authors"][0] for b in BOOKS.values()})
             items = [dict(id=i, name=n, bookCount=sum(1 for b in BOOKS.values() if b["authors"][0] == n), coverBookId=next(b["id"] for b in BOOKS.values() if b["authors"][0] == n)) for i, n in enumerate(names, 1)]
