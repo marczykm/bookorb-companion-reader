@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "companion-reader"
+rootProject.name = "bookorb-companion-reader"
 include(":app")

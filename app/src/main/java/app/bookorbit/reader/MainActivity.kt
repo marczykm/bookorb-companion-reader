@@ -108,7 +108,7 @@ fun LoginScreen(app: App, onDone: () -> Unit) {
         Modifier.fillMaxSize().safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
-        Text("Companion Reader", style = MaterialTheme.typography.headlineLarge)
+        Text("BookOrb: Companion reader", style = MaterialTheme.typography.headlineMedium)
         Text("An unofficial reader for your BookOrbit server", style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(24.dp))
