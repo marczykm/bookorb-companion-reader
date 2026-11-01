@@ -113,9 +113,9 @@ fun HomeScreen(app: App, onLogout: () -> Unit) {
             LazyColumn(contentPadding = PaddingValues(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 items(layout.rows, key = { it.first() }) { row ->
                     if (row.size == 2 || (row.size == 1 && row[0] in HALF_WIDTH_ITEMS && layout.sizeOf(row[0]) == "s")) {
-                        Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(Modifier.padding(horizontal = 16.dp).height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             row.forEach { id ->
-                                Box(Modifier.weight(1f)) { WidgetItem(id, widgets, current.isNotEmpty(), "s") }
+                                Box(Modifier.weight(1f).fillMaxHeight()) { WidgetItem(id, widgets, current.isNotEmpty(), "s") }
                             }
                             if (row.size == 1) Spacer(Modifier.weight(1f))
                         }

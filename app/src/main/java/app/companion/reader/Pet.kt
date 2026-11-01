@@ -107,7 +107,7 @@ fun PetCard(context: Context, data: Map<String, kotlinx.serialization.json.JsonO
             filterQuality = FilterQuality.None, modifier = Modifier.size(when (size) { "s" -> 72.dp; "l" -> 152.dp; else -> 104.dp }),
         )
     }
-    Card(Modifier.fillMaxWidth().clickable { picking = true }) {
+    Card(Modifier.fillMaxWidth().fillMaxHeight().clickable { picking = true }) {
         if (size == "s") {
             // Half width: sprite above a single caption line.
             Column(Modifier.fillMaxWidth().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {

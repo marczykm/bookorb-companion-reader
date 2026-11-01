@@ -50,7 +50,8 @@ fun WidgetItem(id: String, data: Map<String, JsonObject>, hasBook: Boolean, size
 
 @Composable
 private fun WidgetCard(title: String, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Card(modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+    // fillMaxHeight lets two cards sharing a row grow to the taller one; on its own it keeps its natural height.
+    Card(modifier.fillMaxWidth().fillMaxHeight(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             content()
