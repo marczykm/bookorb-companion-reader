@@ -20,6 +20,72 @@ import java.util.Date
 /** A chapter and where it begins in the book, as a fraction 0..1. */
 class Chapter(val title: String, val start: Double)
 
+/** A small battery: an outline with a nub, filled to the charge level, with a bolt while charging. */
+class BatteryIconView(context: Context) : View(context) {
+    private val dp = resources.displayMetrics.density
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val rect = RectF()
+    private val bolt = android.graphics.Path()
+    var level = 100
+        set(v) { field = v.coerceIn(0, 100); invalidate() }
+    var charging = false
+        set(v) { field = v; invalidate() }
+    var color = 0xFF666666.toInt()
+        set(v) { field = v; invalidate() }
+    /** What the bolt is cut out of; the bar behind the icon. */
+    var cutoutColor = 0xFFFFFFFF.toInt()
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) =
+        setMeasuredDimension((22 * dp).toInt(), (12 * dp).toInt())
+
+    override fun onDraw(canvas: Canvas) {
+        val stroke = 1.2f * dp
+        val nubW = 2f * dp
+        val bodyRight = width - nubW
+        // Low charge shows red unless the phone is charging.
+        val fill = if (level <= 15 && !charging) 0xFFD32F2F.toInt() else color
+
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = stroke
+        paint.color = color
+        rect.set(stroke / 2, stroke / 2, bodyRight - stroke / 2, height - stroke / 2)
+        canvas.drawRoundRect(rect, 2.5f * dp, 2.5f * dp, paint)
+
+        paint.style = Paint.Style.FILL
+        rect.set(width - nubW, height * 0.3f, width.toFloat(), height * 0.7f)
+        canvas.drawRoundRect(rect, 1f * dp, 1f * dp, paint)
+
+        val inset = stroke + 1f * dp
+        val innerW = bodyRight - 2 * inset
+        paint.color = fill
+        rect.set(inset, inset, inset + innerW * level / 100f, height - inset)
+        canvas.drawRoundRect(rect, 1f * dp, 1f * dp, paint)
+
+        if (charging) {
+            val cx = bodyRight / 2
+            val cy = height / 2f
+            val u = dp
+            bolt.reset()
+            bolt.moveTo(cx + 1.2f * u, cy - 4f * u)
+            bolt.lineTo(cx - 2.6f * u, cy + 0.6f * u)
+            bolt.lineTo(cx - 0.2f * u, cy + 0.6f * u)
+            bolt.lineTo(cx - 1.2f * u, cy + 4f * u)
+            bolt.lineTo(cx + 2.6f * u, cy - 0.6f * u)
+            bolt.lineTo(cx + 0.2f * u, cy - 0.6f * u)
+            bolt.close()
+            // Filled with the bar colour and outlined in the icon colour, so it shows over both full and empty parts.
+            paint.style = Paint.Style.FILL
+            paint.color = cutoutColor
+            canvas.drawPath(bolt, paint)
+            paint.style = Paint.Style.STROKE
+            paint.strokeWidth = 0.9f * dp
+            paint.strokeJoin = Paint.Join.ROUND
+            paint.color = color
+            canvas.drawPath(bolt, paint)
+        }
+    }
+}
+
 /** A thin progress bar with a tick at the start of every chapter and a dot for the current position. */
 class ProgressMarksView(context: Context) : View(context) {
     private val dp = resources.displayMetrics.density
@@ -76,6 +142,15 @@ class ReaderChrome(private val activity: AppCompatActivity) {
     }
     private val clockText = TextView(activity).apply { textSize = 12f; gravity = Gravity.CENTER }
     private val batteryText = TextView(activity).apply { textSize = 12f; gravity = Gravity.END or Gravity.CENTER_VERTICAL }
+    private val batteryIcon = BatteryIconView(activity)
+
+    /** Battery symbol followed by the percentage, pushed to the right edge. */
+    private val batteryBox = LinearLayout(activity).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.END or Gravity.CENTER_VERTICAL
+        addView(batteryIcon, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { marginEnd = px(5) })
+        addView(batteryText)
+    }
     private val progressView = ProgressMarksView(activity)
 
     /** Chapter title on the left, clock in the middle, battery on the right. Equal weights keep the clock centred. */
@@ -85,7 +160,7 @@ class ReaderChrome(private val activity: AppCompatActivity) {
         setPadding(px(16), px(6), px(16), px(6))
         addView(chapterText, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         addView(clockText, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT))
-        addView(batteryText, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        addView(batteryBox, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
     }
 
     private val minutesText = TextView(activity).apply {
@@ -134,6 +209,8 @@ class ReaderChrome(private val activity: AppCompatActivity) {
         top.setBackgroundColor(bg)
         bottom.setBackgroundColor(bg)
         listOf(chapterText, clockText, batteryText, minutesText).forEach { it.setTextColor(text) }
+        batteryIcon.color = text
+        batteryIcon.cutoutColor = bg
         progressView.fillColor = fill
         progressView.trackColor = (text and 0x00FFFFFF) or 0x40000000
         progressView.markColor = (text and 0x00FFFFFF) or 0xAA000000.toInt()
@@ -157,7 +234,10 @@ class ReaderChrome(private val activity: AppCompatActivity) {
         if (level < 0) return
         val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
         val charging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
-        batteryText.text = (if (charging) "⚡ " else "") + "${level * 100 / scale}%"
+        val percent = level * 100 / scale
+        batteryIcon.level = percent
+        batteryIcon.charging = charging
+        batteryText.text = "$percent%"
     }
 
     fun start() {
