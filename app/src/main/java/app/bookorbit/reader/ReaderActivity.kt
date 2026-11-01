@@ -46,6 +46,7 @@ class ReaderActivity : AppCompatActivity() {
     private var navigator: EpubNavigatorFragment? = null
     private val readerSettings by lazy { ReaderSettings(this) }
     private var toolbar: View? = null
+    private var chromeBars: ReaderChrome? = null
     private var bookId = 0L
     private var highlights: HighlightSync? = null
     private var firstResume = true
@@ -81,6 +82,16 @@ class ReaderActivity : AppCompatActivity() {
         (application as App).syncNow()
     }
 
+    override fun onStart() {
+        super.onStart()
+        chromeBars?.start()
+    }
+
+    override fun onStop() {
+        chromeBars?.stop()
+        super.onStop()
+    }
+
     override fun onResume() {
         super.onResume()
         // Pick up highlights edited on the web while the app was in the background.
@@ -101,14 +112,23 @@ class ReaderActivity : AppCompatActivity() {
         bookId = intent.getLongExtra(EXTRA_BOOK_ID, 0)
         val container = FragmentContainerView(this).apply { id = View.generateViewId() }
         val spinner = ProgressBar(this)
+        val chrome = ReaderChrome(this).also { chromeBars = it }
+        chrome.applyTheme(readerSettings.theme)
+        val column = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(chrome.top, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            addView(container, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+            addView(chrome.bottom, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (28 * resources.displayMetrics.density).toInt()))
+        }
         val root = FrameLayout(this).apply {
-            addView(container, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            setBackgroundColor(chrome.backgroundColor)
+            addView(column, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             addView(spinner, FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
         }
         // A bar with Back and Aa, shown by tapping the middle of the page.
         val bar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setBackgroundColor(0xEE222222.toInt())
+            setBackgroundColor(0xFF222222.toInt())
             visibility = View.GONE
             val dp = resources.displayMetrics.density
             setPadding((8 * dp).toInt(), (4 * dp).toInt(), (8 * dp).toInt(), (4 * dp).toInt())
@@ -125,7 +145,7 @@ class ReaderActivity : AppCompatActivity() {
         root.addView(bar, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP))
         setContentView(root)
         ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
             v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
             insets
         }
@@ -164,6 +184,7 @@ class ReaderActivity : AppCompatActivity() {
                 val nav = supportFragmentManager.findFragmentByTag("reader") as EpubNavigatorFragment
                 navigator = nav
                 nav.addInputListener(edgeTapListener(nav))
+                launch { chromeBars?.setChapters(chaptersOf(pub)); chromeBars?.update(nav.currentLocator.value.locations.totalProgression, nav.currentLocator.value.title) }
                 hl.nav = nav
                 nav.addDecorationListener(HighlightSync.GROUP, hl.decorationListener)
                 if (bookId != 0L) {
@@ -235,14 +256,40 @@ class ReaderActivity : AppCompatActivity() {
         return super.onKeyUp(keyCode, event)
     }
 
+    /** Where each table-of-contents chapter starts, as a fraction of the book. */
+    private suspend fun chaptersOf(pub: Publication): List<Chapter> {
+        val positions = pub.positions()
+        fun key(url: Any) = url.toString().substringBefore('#')
+        val starts = HashMap<String, Double>()
+        for (p in positions) starts.putIfAbsent(key(p.href), p.locations.totalProgression ?: continue)
+        val out = mutableListOf<Chapter>()
+        val seen = HashSet<String>()
+        fun walk(links: List<org.readium.r2.shared.publication.Link>) {
+            for (link in links) {
+                val href = key(link.url())
+                val title = link.title
+                val start = starts[href]
+                if (!title.isNullOrBlank() && start != null && seen.add(href)) out.add(Chapter(title.trim(), start))
+                walk(link.children)
+            }
+        }
+        walk(pub.tableOfContents)
+        return out
+    }
+
     private fun applySettings() {
         navigator?.submitPreferences(readerSettings.toPreferences())
+        chromeBars?.let { c ->
+            c.applyTheme(readerSettings.theme)
+            (c.top.parent as? View)?.parent?.let { (it as? View)?.setBackgroundColor(c.backgroundColor) }
+        }
     }
 
     @OptIn(FlowPreview::class)
     private fun trackProgress(nav: EpubNavigatorFragment) {
         lifecycleScope.launch {
             nav.currentLocator.collect { loc ->
+                chromeBars?.update(loc.locations.totalProgression, loc.title)
                 touchActivity()
                 loc.locations.totalProgression?.let { p ->
                     if (openedAt == null) openedAt = p else if (p != openedAt) moved = true
