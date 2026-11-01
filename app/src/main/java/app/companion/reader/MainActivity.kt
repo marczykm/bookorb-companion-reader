@@ -66,6 +66,23 @@ fun MainScreen(app: App, onLogout: () -> Unit) {
     var settingsOpen by rememberSaveable { mutableStateOf(false) }
     var appsOpen by rememberSaveable { mutableStateOf(false) }
     val context = androidx.compose.ui.platform.LocalContext.current
+    // Some devices (Boox, for one) put their own launcher back after a reboot. If the user turned the Home
+    // entry on but Android no longer sends Home here, offer to set it again when the app is opened.
+    var lostHome by remember { mutableStateOf(Launcher.isEnabled(context) && !Launcher.isDefaultHome(context)) }
+    val roleDialog = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+    ) { }
+    if (lostHome) {
+        AlertDialog(
+            onDismissRequest = { lostHome = false },
+            title = { Text("Home app was reset") },
+            text = { Text("This app is no longer your Home app. Your device may have switched back to its own launcher, for example after a restart.") },
+            confirmButton = {
+                TextButton(onClick = { lostHome = false; roleDialog.launch(Launcher.requestIntent(context)) }) { Text("Set again") }
+            },
+            dismissButton = { TextButton(onClick = { lostHome = false }) { Text("Not now") } },
+        )
+    }
     // Settings is a page of its own, reached with the gear in each tab's top bar; Back returns to the tab.
     if (settingsOpen) {
         androidx.activity.compose.BackHandler { settingsOpen = false }
