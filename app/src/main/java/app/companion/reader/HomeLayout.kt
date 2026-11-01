@@ -33,6 +33,9 @@ val HOME_ITEMS: List<Pair<String, String>> = listOf(
 
 val SIZES = listOf("s", "m", "l")
 
+/** Everything starts small except the continue-reading card and its shelf. */
+private val MEDIUM_BY_DEFAULT = setOf("hero", "shelf:continue")
+
 /** Cards that can sit two to a row when small. Hero and shelves scale their covers instead. */
 val HALF_WIDTH_ITEMS: Set<String> = HOME_ITEMS.map { it.first }.filter { it != "hero" && !it.startsWith("shelf:") }.toSet()
 
@@ -46,13 +49,13 @@ class HomeLayout(context: Context) {
     var hidden by mutableStateOf(prefs.getString("home_hidden", "")!!.split(',').filter { it.isNotEmpty() }.toSet())
         private set
 
-    /** "s", "m" or "l" per item; missing means "m". */
+    /** "s", "m" or "l" per item; missing means the default for that item. */
     var sizes by mutableStateOf(
         prefs.getString("home_sizes", "")!!.split(',').mapNotNull { e -> e.split('=').takeIf { it.size == 2 && it[1] in SIZES }?.let { it[0] to it[1] } }.toMap(),
     )
         private set
 
-    fun sizeOf(id: String) = sizes[id] ?: "m"
+    fun sizeOf(id: String) = sizes[id] ?: if (id in MEDIUM_BY_DEFAULT) "m" else "s"
 
     fun cycleSize(id: String) {
         sizes = sizes + (id to SIZES[(SIZES.indexOf(sizeOf(id)) + 1) % SIZES.size])
