@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.*
@@ -67,6 +68,7 @@ fun MainScreen(app: App, onLogout: () -> Unit) {
                 NavigationBarItem(tab == 0, { tab = 0 }, { Icon(Icons.Default.Home, null) }, label = { Text("Home") })
                 NavigationBarItem(tab == 1, { tab = 1 }, { Icon(Icons.Default.Search, null) }, label = { Text("Library") })
                 NavigationBarItem(tab == 2, { tab = 2 }, { Icon(Icons.Default.Menu, null) }, label = { Text("Browse") })
+                NavigationBarItem(tab == 3, { tab = 3 }, { Icon(Icons.Default.Settings, null) }, label = { Text("Settings") })
             }
         },
     ) { padding ->
@@ -74,7 +76,8 @@ fun MainScreen(app: App, onLogout: () -> Unit) {
             when (tab) {
                 0 -> HomeScreen(app, onLogout)
                 1 -> LibraryScreen(app, onLogout)
-                else -> BrowseScreen(app, onLogout)
+                2 -> BrowseScreen(app, onLogout)
+                else -> SettingsScreen()
             }
         }
     }

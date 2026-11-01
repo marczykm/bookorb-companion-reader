@@ -116,12 +116,6 @@ fun showReaderSettings(context: Context, settings: ReaderSettings, onChange: () 
             setPadding(pad(4), pad(8), 0, pad(4))
             setOnCheckedChangeListener { _, checked -> settings.justify = checked; onChange() }
         })
-        addView(android.widget.CheckBox(context).apply {
-            text = "Turn pages with the volume keys"
-            isChecked = settings.volumeKeys
-            setPadding(pad(4), pad(8), 0, pad(8))
-            setOnCheckedChangeListener { _, checked -> settings.volumeKeys = checked }
-        })
         addView(TextView(context).apply {
             val pace = settings.learnedPace
             text = if (pace > 0) "Reading speed: about ${pace.toInt()} words/min (learned from your reading)"
@@ -148,7 +142,7 @@ fun showReaderSettings(context: Context, settings: ReaderSettings, onChange: () 
         .setView(content)
         .setPositiveButton("Done", null)
         .setNeutralButton("Reset") { _, _ ->
-            settings.fontSize = 1.0; settings.margins = 1.0; settings.theme = "light"; settings.volumeKeys = true; settings.justify = false; settings.learnedPace = 0.0; onChange()
+            settings.fontSize = 1.0; settings.margins = 1.0; settings.theme = "light"; settings.justify = false; settings.learnedPace = 0.0; onChange()
         }
         .show()
 }
