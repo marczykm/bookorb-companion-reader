@@ -1,4 +1,4 @@
-package app.bookorbit.reader
+package app.companion.reader
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

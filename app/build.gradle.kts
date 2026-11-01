@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "app.bookorbit.reader"
+    namespace = "app.companion.reader"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "app.bookorbit.reader"
+        applicationId = "app.companion.reader"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

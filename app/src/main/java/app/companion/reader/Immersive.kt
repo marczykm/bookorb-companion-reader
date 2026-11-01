@@ -1,4 +1,4 @@
-package app.bookorbit.reader
+package app.companion.reader
 
 import android.app.Activity
 import android.view.WindowManager

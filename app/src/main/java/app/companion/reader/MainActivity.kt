@@ -1,4 +1,4 @@
-package app.bookorbit.reader
+package app.companion.reader
 
 import android.content.Intent
 import android.os.Bundle
