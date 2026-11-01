@@ -9,6 +9,7 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import org.readium.r2.navigator.epub.EpubPreferences
+import org.readium.r2.navigator.preferences.TextAlign
 import org.readium.r2.navigator.preferences.Theme
 
 const val DEFAULT_WORDS_PER_MINUTE = 230.0
@@ -37,6 +38,11 @@ class ReaderSettings(context: Context) {
         get() = prefs.getFloat("learnedPace", 0f).toDouble()
         set(v) = prefs.edit().putFloat("learnedPace", v.toFloat()).apply()
 
+    /** Lines are stretched to both edges, with hyphenation so the gaps stay small. */
+    var justify: Boolean
+        get() = prefs.getBoolean("justify", false)
+        set(v) = prefs.edit().putBoolean("justify", v).apply()
+
     var theme: String
         get() = prefs.getString("theme", "light") ?: "light"
         set(v) = prefs.edit().putString("theme", v).apply()
@@ -44,6 +50,10 @@ class ReaderSettings(context: Context) {
     fun toPreferences() = EpubPreferences(
         fontSize = fontSize,
         pageMargins = margins,
+        // Alignment is ignored while the book's own styles apply, so they step aside only when justifying.
+        textAlign = if (justify) TextAlign.JUSTIFY else null,
+        hyphens = if (justify) true else null,
+        publisherStyles = if (justify) false else null,
         theme = when (theme) { "dark" -> Theme.DARK; "sepia" -> Theme.SEPIA; else -> Theme.LIGHT },
     )
 }
@@ -101,6 +111,12 @@ fun showReaderSettings(context: Context, settings: ReaderSettings, onChange: () 
             settings.margins = it / 4.0; onChange()
         })
         addView(android.widget.CheckBox(context).apply {
+            text = "Justify text"
+            isChecked = settings.justify
+            setPadding(pad(4), pad(8), 0, pad(4))
+            setOnCheckedChangeListener { _, checked -> settings.justify = checked; onChange() }
+        })
+        addView(android.widget.CheckBox(context).apply {
             text = "Turn pages with the volume keys"
             isChecked = settings.volumeKeys
             setPadding(pad(4), pad(8), 0, pad(8))
@@ -132,7 +148,7 @@ fun showReaderSettings(context: Context, settings: ReaderSettings, onChange: () 
         .setView(content)
         .setPositiveButton("Done", null)
         .setNeutralButton("Reset") { _, _ ->
-            settings.fontSize = 1.0; settings.margins = 1.0; settings.theme = "light"; settings.volumeKeys = true; settings.learnedPace = 0.0; onChange()
+            settings.fontSize = 1.0; settings.margins = 1.0; settings.theme = "light"; settings.volumeKeys = true; settings.justify = false; settings.learnedPace = 0.0; onChange()
         }
         .show()
 }
