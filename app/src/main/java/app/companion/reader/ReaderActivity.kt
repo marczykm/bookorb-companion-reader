@@ -168,8 +168,8 @@ class ReaderActivity : AppCompatActivity() {
         }
         val dotSize = (8 * resources.displayMetrics.density).toInt()
         root.addView(syncDot, FrameLayout.LayoutParams(dotSize, dotSize, Gravity.TOP or Gravity.END).apply {
-            // In the gap between the clock and the battery, level with the top bar's text.
-            topMargin = (11 * resources.displayMetrics.density).toInt(); marginEnd = (110 * resources.displayMetrics.density).toInt()
+            // Just left of the battery icon, level with the top bar's text.
+            topMargin = (11 * resources.displayMetrics.density).toInt(); marginEnd = (76 * resources.displayMetrics.density).toInt()
         })
         lifecycleScope.launch {
             (application as App).api.syncing.collect { syncDot.visibility = if (it) View.VISIBLE else View.GONE }
