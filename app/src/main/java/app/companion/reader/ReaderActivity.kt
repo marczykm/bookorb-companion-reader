@@ -168,7 +168,7 @@ class ReaderActivity : AppCompatActivity() {
         }
         val dotSize = (8 * resources.displayMetrics.density).toInt()
         root.addView(syncDot, FrameLayout.LayoutParams(dotSize, dotSize, Gravity.TOP or Gravity.END).apply {
-            topMargin = (14 * resources.displayMetrics.density).toInt(); marginEnd = (20 * resources.displayMetrics.density).toInt()
+            topMargin = (14 * resources.displayMetrics.density).toInt(); marginEnd = (48 * resources.displayMetrics.density).toInt()
         })
         lifecycleScope.launch {
             (application as App).api.syncing.collect { syncDot.visibility = if (it) View.VISIBLE else View.GONE }

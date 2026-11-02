@@ -207,7 +207,7 @@ fun SyncDot(app: App, modifier: Modifier = Modifier) {
     val syncing by app.api.syncing.collectAsState()
     if (syncing) {
         Box(
-            modifier.windowInsetsPadding(WindowInsets.statusBars).padding(top = 14.dp, end = 20.dp)
+            modifier.windowInsetsPadding(WindowInsets.statusBars).padding(top = 14.dp, end = 48.dp)
                 .size(8.dp).clip(androidx.compose.foundation.shape.CircleShape)
                 .background(androidx.compose.ui.graphics.Color(0xFF6750A4)),
         )
