@@ -197,6 +197,7 @@ private fun Shelf(app: App, title: String, books: List<BookCard>, size: String, 
 private fun AboutDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
     AlertDialog(
+        modifier = with(Display) { Modifier.dialogBorder(MaterialTheme.shapes.extraLarge) },
         onDismissRequest = onDismiss,
         confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } },
         title = { Text("About") },

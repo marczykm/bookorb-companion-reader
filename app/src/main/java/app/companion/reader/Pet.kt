@@ -128,6 +128,7 @@ fun PetCard(context: Context, data: Map<String, kotlinx.serialization.json.JsonO
 
     if (picking) {
         AlertDialog(
+            modifier = with(Display) { Modifier.dialogBorder(MaterialTheme.shapes.extraLarge) },
             onDismissRequest = { picking = false },
             confirmButton = { TextButton(onClick = { picking = false }) { Text("Close") } },
             title = { Text("Choose a companion") },

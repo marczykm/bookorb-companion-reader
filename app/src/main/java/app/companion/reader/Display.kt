@@ -2,6 +2,8 @@ package app.companion.reader
 
 import android.content.Context
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.ui.Modifier
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -46,6 +48,44 @@ object Display {
     /** The outline of a widget card, or none on a normal screen. */
     @Composable
     fun cardBorder(): BorderStroke? = if (bordered) BorderStroke(1.5.dp, MaterialTheme.colorScheme.onSurface) else null
+
+    /** An outline for dialogs drawn by Compose, on an e-ink screen. */
+    @Composable
+    fun Modifier.dialogBorder(shape: androidx.compose.ui.graphics.Shape): Modifier =
+        if (bordered) border(2.dp, MaterialTheme.colorScheme.onSurface, shape) else this
+
+    /** Bottom sheets are square-topped on e-ink, with a line along the top edge where the sheet begins. */
+    @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+    @Composable
+    fun sheetShape(): androidx.compose.ui.graphics.Shape =
+        if (bordered) androidx.compose.ui.graphics.RectangleShape else androidx.compose.material3.BottomSheetDefaults.ExpandedShape
+
+    @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+    @Composable
+    fun SheetHandle() {
+        androidx.compose.foundation.layout.Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+            if (bordered) androidx.compose.material3.HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.onSurface)
+            androidx.compose.material3.BottomSheetDefaults.DragHandle()
+        }
+    }
+
+    /** The same outline for a classic Android dialog, once it is showing. */
+    fun frame(dialog: androidx.appcompat.app.AlertDialog): androidx.appcompat.app.AlertDialog {
+        if (!bordered) return dialog
+        val ctx = dialog.context
+        val fill = android.util.TypedValue().let { tv ->
+            if (ctx.theme.resolveAttribute(android.R.attr.colorBackground, tv, true)) tv.data else 0xFFFFFFFF.toInt()
+        }
+        val dark = (ctx.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val density = ctx.resources.displayMetrics.density
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
+            setColor(fill)
+            cornerRadius = 12 * density
+            setStroke((2 * density).toInt(), if (dark) 0xFFFFFFFF.toInt() else 0xFF000000.toInt())
+        })
+        return dialog
+    }
 
     /** The purple "syncing" dot, dark grey on a black and white screen. */
     val dotColor get() = if (mono) 0xFF000000.toInt() else 0xFF6750A4.toInt()

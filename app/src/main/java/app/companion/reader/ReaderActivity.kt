@@ -247,7 +247,7 @@ class ReaderActivity : AppCompatActivity() {
                 .setCancelable(false)
                 .setPositiveButton("Jump to ${serverPct.toInt()}%") { _, _ -> if (cont.isActive) cont.resumeWith(Result.success(true)) }
                 .setNegativeButton("Stay here") { _, _ -> if (cont.isActive) cont.resumeWith(Result.success(false)) }
-                .show()
+                .show().let { Display.frame(it) }
             cont.invokeOnCancellation { dialog.dismiss() }
         }
 

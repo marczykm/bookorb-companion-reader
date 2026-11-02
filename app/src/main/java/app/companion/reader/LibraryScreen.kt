@@ -199,7 +199,7 @@ private fun BookRow(app: App, book: BookCard, onClick: () -> Unit) {
 @Composable
 internal fun BookSheet(app: App, book: BookCard, onDismiss: () -> Unit, onChanged: (BookCard) -> Unit, onRead: () -> Unit) {
     val scope = rememberCoroutineScope()
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    ModalBottomSheet(shape = Display.sheetShape(), dragHandle = { Display.SheetHandle() }, onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.padding(horizontal = 20.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 AsyncImage(

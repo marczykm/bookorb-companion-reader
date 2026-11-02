@@ -196,7 +196,7 @@ class HighlightSync(
                     render()
                 }
             }
-            .show()
+            .show().let { Display.frame(it) }
     }
 
     private suspend fun render() {

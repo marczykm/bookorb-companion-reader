@@ -110,7 +110,7 @@ class HomeLayout(context: Context) {
 @Composable
 fun CustomizeHomeSheet(layout: HomeLayout, onDismiss: () -> Unit) {
     val titles = remember { HOME_ITEMS.toMap() }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    ModalBottomSheet(shape = Display.sheetShape(), dragHandle = { Display.SheetHandle() }, onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text("Customize Home", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))

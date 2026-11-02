@@ -78,6 +78,7 @@ fun MainScreen(app: App, onLogout: () -> Unit) {
     ) { }
     if (lostHome) {
         AlertDialog(
+            modifier = with(Display) { Modifier.dialogBorder(MaterialTheme.shapes.extraLarge) },
             onDismissRequest = { lostHome = false },
             title = { Text("Home app was reset") },
             text = { Text("This app is no longer your Home app. Your device may have switched back to its own launcher, for example after a restart.") },

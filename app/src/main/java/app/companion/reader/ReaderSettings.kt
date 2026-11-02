@@ -151,5 +151,5 @@ fun showReaderSettings(context: Context, settings: ReaderSettings, onChange: () 
         .setNeutralButton("Reset") { _, _ ->
             settings.fontSize = 1.0; settings.margins = 1.0; settings.theme = "system"; settings.justify = false; settings.learnedPace = 0.0; onChange()
         }
-        .show()
+        .show().let { Display.frame(it) }
 }
