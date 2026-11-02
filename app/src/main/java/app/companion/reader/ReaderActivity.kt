@@ -157,6 +157,15 @@ class ReaderActivity : AppCompatActivity() {
             }
             addView(action("←") { finish() })
             addView(View(this@ReaderActivity), LinearLayout.LayoutParams(0, 1, 1f))
+            // A moon in the day theme and a sun in the night theme: tapping switches to the other one.
+            fun glyph() = if (readerSettings.theme == "dark") "\u2600\uFE0E" else "\u263E\uFE0E"
+            val themeToggle = action(glyph()) {}
+            themeToggle.setOnClickListener {
+                readerSettings.theme = if (readerSettings.theme == "dark") "light" else "dark"
+                themeToggle.text = glyph()
+                applySettings()
+            }
+            addView(themeToggle)
             addView(action("Aa") { showReaderSettings(this@ReaderActivity, readerSettings) { applySettings() } })
         }
         toolbar = bar

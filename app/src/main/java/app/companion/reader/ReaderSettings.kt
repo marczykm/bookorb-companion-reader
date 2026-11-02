@@ -43,16 +43,12 @@ class ReaderSettings(private val context: Context) {
         get() = prefs.getBoolean("justify", false)
         set(v) = prefs.edit().putBoolean("justify", v).apply()
 
+    /** "light" or "dark", switched with the day/night button next to Aa. */
     var theme: String
-        get() = prefs.getString("theme", "system") ?: "system"
+        get() = if (prefs.getString("theme", "light") == "dark") "dark" else "light"
         set(v) = prefs.edit().putString("theme", v).apply()
 
-    /** The theme actually drawn: "system" follows the device's light or dark mode. */
-    val effectiveTheme: String
-        get() = theme.takeIf { it == "light" || it == "dark" } ?: run {
-            val night = context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
-            if (night == android.content.res.Configuration.UI_MODE_NIGHT_YES) "dark" else "light"
-        }
+    val effectiveTheme: String get() = theme
 
     fun toPreferences() = EpubPreferences(
         fontSize = fontSize,
@@ -65,7 +61,7 @@ class ReaderSettings(private val context: Context) {
     )
 }
 
-/** The "Aa" dialog: font size, margins and theme, applied as you press. */
+/** The "Aa" dialog: font size, margins and justify, applied as you press. */
 fun showReaderSettings(host: Context, settings: ReaderSettings, onChange: () -> Unit) {
     // The controls take their colours from the theme of the context they are made with.
     val context: Context = if (Display.mono) androidx.appcompat.view.ContextThemeWrapper(host, R.style.Dialog_Mono) else host
@@ -132,26 +128,13 @@ fun showReaderSettings(host: Context, settings: ReaderSettings, onChange: () -> 
             textSize = 13f
             setPadding(pad(4), pad(4), 0, pad(4))
         })
-        addView(TextView(context).apply { text = "Theme"; textSize = 15f; setPadding(0, pad(12), 0, 0) })
-        addView(RadioGroup(context).apply {
-            orientation = RadioGroup.HORIZONTAL
-            listOf("system" to "Device", "light" to "Light", "dark" to "Dark").forEach { (key, name) ->
-                addView(RadioButton(context).apply {
-                    id = View.generateViewId()
-                    text = name
-                    isChecked = settings.theme == key
-                    setPadding(pad(4), 0, pad(16), 0)
-                    setOnClickListener { settings.theme = key; onChange() }
-                })
-            }
-        })
     }
     Display.dialogBuilder(host)
         .setTitle("Reading settings")
         .setView(content)
         .setPositiveButton("Done", null)
         .setNeutralButton("Reset") { _, _ ->
-            settings.fontSize = 1.0; settings.margins = 1.0; settings.theme = "system"; settings.justify = false; settings.learnedPace = 0.0; onChange()
+            settings.fontSize = 1.0; settings.margins = 1.0; settings.justify = false; settings.learnedPace = 0.0; onChange()
         }
         .show().let { Display.frame(it) }
 }

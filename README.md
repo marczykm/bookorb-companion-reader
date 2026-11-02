@@ -15,7 +15,7 @@ It looks and works like the BookOrbit KOReader plugin, as an Android reader. It 
 - **Library**: filter by library and read status, search, grid or list, set status and rating, and download books for offline reading.
 - **Browse** series, authors and SmartScopes.
 - **Reader**
-  - Font size, margins, themes (device mode, light, dark) and optional justified text.
+  - Font size, margins, a day/night button next to Aa and optional justified text.
   - A top bar with the chapter, the clock and the battery, and a bottom bar with book progress marked with chapters and an estimate of the minutes left in the chapter, learned from your own reading speed.
   - Pages turn instantly, with no animation, by swiping, tapping the screen edges or (optionally) the volume keys.
   - The Android status bar is hidden while the app runs.
