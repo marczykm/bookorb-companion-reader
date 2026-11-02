@@ -36,7 +36,7 @@ class BatteryIconView(context: Context) : View(context) {
     var cutoutColor = 0xFFFFFFFF.toInt()
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) =
-        setMeasuredDimension((28 * dp).toInt(), (15 * dp).toInt())
+        setMeasuredDimension((33 * dp).toInt(), (18 * dp).toInt())
 
     override fun onDraw(canvas: Canvas) {
         val stroke = 1.2f * dp
@@ -138,10 +138,10 @@ class ReaderChrome(private val activity: AppCompatActivity) {
     private fun px(v: Int) = (v * dp).toInt()
 
     private val chapterText = TextView(activity).apply {
-        textSize = 16f; maxLines = 1; ellipsize = TextUtils.TruncateAt.END; gravity = Gravity.START or Gravity.CENTER_VERTICAL
+        textSize = 19f; maxLines = 1; ellipsize = TextUtils.TruncateAt.END; gravity = Gravity.START or Gravity.CENTER_VERTICAL
     }
-    private val clockText = TextView(activity).apply { textSize = 16f; gravity = Gravity.CENTER }
-    private val batteryText = TextView(activity).apply { textSize = 16f; gravity = Gravity.END or Gravity.CENTER_VERTICAL }
+    private val clockText = TextView(activity).apply { textSize = 19f; gravity = Gravity.CENTER }
+    private val batteryText = TextView(activity).apply { textSize = 19f; gravity = Gravity.END or Gravity.CENTER_VERTICAL }
     private val batteryIcon = BatteryIconView(activity)
 
     /** Battery symbol followed by the percentage, pushed to the right edge. */
@@ -164,7 +164,7 @@ class ReaderChrome(private val activity: AppCompatActivity) {
     }
 
     private val minutesText = TextView(activity).apply {
-        textSize = 16f; gravity = Gravity.END or Gravity.CENTER_VERTICAL; maxLines = 1
+        textSize = 19f; gravity = Gravity.END or Gravity.CENTER_VERTICAL; maxLines = 1
     }
 
     /** The progress bar with the time left in the chapter beside it. */
