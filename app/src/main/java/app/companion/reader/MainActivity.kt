@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -52,8 +53,11 @@ class MainActivity : ComponentActivity() {
             MaterialTheme {
                 Surface(Modifier.fillMaxSize()) {
                     var loggedIn by remember { mutableStateOf(app.session.isLoggedIn) }
-                    if (loggedIn) MainScreen(app, onLogout = { loggedIn = false })
-                    else LoginScreen(app, onDone = { loggedIn = true })
+                    Box(Modifier.fillMaxSize()) {
+                        if (loggedIn) MainScreen(app, onLogout = { loggedIn = false })
+                        else LoginScreen(app, onDone = { loggedIn = true })
+                        if (loggedIn) SyncDot(app, Modifier.align(Alignment.TopEnd))
+                    }
                 }
             }
         }
@@ -194,5 +198,18 @@ fun BookTile(app: App, book: BookCard, onDevice: Boolean = false, onClick: () ->
         Text(book.title ?: "Untitled", maxLines = 2, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium)
         Text(book.authors.joinToString(), maxLines = 1, overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** A small purple dot in the top corner while the app is talking to the server, like the privacy dot for the camera. */
+@Composable
+fun SyncDot(app: App, modifier: Modifier = Modifier) {
+    val syncing by app.api.syncing.collectAsState()
+    if (syncing) {
+        Box(
+            modifier.windowInsetsPadding(WindowInsets.statusBars).padding(top = 6.dp, end = 6.dp)
+                .size(8.dp).clip(androidx.compose.foundation.shape.CircleShape)
+                .background(androidx.compose.ui.graphics.Color(0xFF6750A4)),
+        )
     }
 }

@@ -174,6 +174,12 @@ class ServerApi(private val session: Session, val cacheDir: File, private val fi
     /** False while the last read had to fall back to saved data because the server couldn't be reached. */
     val online = kotlinx.coroutines.flow.MutableStateFlow(true)
 
+    /** True while a request to the server is in flight (and for a moment after, so quick ones can still be seen). */
+    val syncing = kotlinx.coroutines.flow.MutableStateFlow(false)
+    private val inFlight = java.util.concurrent.atomic.AtomicInteger(0)
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val clearSyncing = Runnable { if (inFlight.get() == 0) syncing.value = false }
+
     private val json = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefaults = true }
     private val jsonType = "application/json".toMediaType()
     private val plain = OkHttpClient()
@@ -184,7 +190,15 @@ class ServerApi(private val session: Session, val cacheDir: File, private val fi
             val req = if (token != null && chain.request().header("Authorization") == null) {
                 chain.request().newBuilder().header("Authorization", "Bearer $token").build()
             } else chain.request()
-            chain.proceed(req)
+            // Cover images are not syncing; everything else that talks to the server is.
+            val path = req.url.encodedPath
+            val counted = !path.endsWith("/thumbnail") && !path.endsWith("/cover")
+            if (counted) { inFlight.incrementAndGet(); mainHandler.removeCallbacks(clearSyncing); syncing.value = true }
+            try {
+                chain.proceed(req)
+            } finally {
+                if (counted && inFlight.decrementAndGet() == 0) mainHandler.postDelayed(clearSyncing, 700)
+            }
         }
         .authenticator(object : Authenticator {
             override fun authenticate(route: Route?, response: Response): Request? {

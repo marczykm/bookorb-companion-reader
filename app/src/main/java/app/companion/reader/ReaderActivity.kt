@@ -161,6 +161,18 @@ class ReaderActivity : AppCompatActivity() {
         }
         toolbar = bar
         root.addView(bar, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP))
+        // The same purple dot as in the app's other screens, while the server is being talked to.
+        val syncDot = View(this).apply {
+            background = android.graphics.drawable.GradientDrawable().apply { shape = android.graphics.drawable.GradientDrawable.OVAL; setColor(0xFF6750A4.toInt()) }
+            visibility = View.GONE
+        }
+        val dotSize = (8 * resources.displayMetrics.density).toInt()
+        root.addView(syncDot, FrameLayout.LayoutParams(dotSize, dotSize, Gravity.TOP or Gravity.END).apply {
+            topMargin = dotSize; marginEnd = dotSize
+        })
+        lifecycleScope.launch {
+            (application as App).api.syncing.collect { syncDot.visibility = if (it) View.VISIBLE else View.GONE }
+        }
         setContentView(root)
         ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
