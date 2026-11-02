@@ -43,9 +43,8 @@ class ReaderActivity : AppCompatActivity() {
     // away from it, so merely opening a book never overwrites what the server has.
     private var openedAt: Double? = null
     private var moved = false
-    // Pages turned since progress was last queued for upload; it goes up every PAGES_PER_SYNC pages.
-    private var pagesSinceSync = 0
-    private var lastSeenProgress: Double? = null
+    // Progress goes up every PAGES_PER_SYNC page turns.
+    private val progressSync = ProgressSyncCounter(PAGES_PER_SYNC)
     private var navigator: EpubNavigatorFragment? = null
     private val readerSettings by lazy { ReaderSettings(this) }
     private var toolbar: View? = null
@@ -470,13 +469,11 @@ class ReaderActivity : AppCompatActivity() {
                 touchActivity()
                 loc.locations.totalProgression?.let { p ->
                     if (openedAt == null) openedAt = p else if (p != openedAt) moved = true
-                    if (moved && lastSeenProgress != null && p != lastSeenProgress && ++pagesSinceSync >= PAGES_PER_SYNC) {
-                        pagesSinceSync = 0
+                    if (progressSync.onPosition(p, moved)) {
                         lastPercent = p * 100
                         (application as App).outbox.progress(fileId, lastPercent)
                         (application as App).syncNow()
                     }
-                    lastSeenProgress = p
                 }
                 loc.locations.totalProgression?.let { p ->
                     currentProgress = p * 100

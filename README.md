@@ -37,6 +37,14 @@ You need JDK 17 and the Android SDK (platform 35).
 
 The APK is written to `app/build/outputs/apk/debug/app-debug.apk`. Create a `local.properties` with `sdk.dir=/path/to/android-sdk` if your SDK isn't found automatically.
 
+## Unit tests
+
+```bash
+./gradlew :app:testDebugUnitTest
+```
+
+They cover the offline outbox (coalescing, offline highlight edits, surviving a restart), when reading progress is uploaded, the reading companion's poses and captions, and the Home layout.
+
 ## Testing without a server
 
 `tools/mock_server.py` is a small stand-in for the BookOrbit API with a sample EPUB, enough to try sign-in, Home, the Library and the reader. Run it with `python3 tools/mock_server.py` and sign in from an emulator at `10.0.2.2:3000` with `demo` / `demo`. Requesting `/__offline/1` makes it behave like an unreachable server.

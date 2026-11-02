@@ -50,6 +50,7 @@ android {
         freeCompilerArgs += "-opt-in=org.readium.r2.shared.ExperimentalReadiumApi"
     }
     buildFeatures { compose = true }
+    testOptions { unitTests { isIncludeAndroidResources = true; isReturnDefaultValues = true } }
 }
 
 dependencies {
@@ -74,4 +75,8 @@ dependencies {
     implementation("org.readium.kotlin-toolkit:readium-shared:$readium")
     implementation("org.readium.kotlin-toolkit:readium-streamer:$readium")
     implementation("org.readium.kotlin-toolkit:readium-navigator:$readium")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("androidx.test:core:1.6.1")
 }
