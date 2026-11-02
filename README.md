@@ -45,7 +45,7 @@ The APK is written to `app/build/outputs/apk/debug/app-debug.apk`. Create a `loc
 - It uses BookOrbit's REST API, which isn't publicly documented. The endpoints were taken from the server's source and may change.
 - Only EPUB is supported, not PDF, comics or audiobooks.
 - Highlights from the web reader are placed by finding their text in the chapter, so an identical repeated sentence could land on the wrong occurrence.
-- Android only. It uses Android's Home-app mechanism, so there is no iOS version.
+- Android only; there is no iOS version.
 - Some BookOrbit plugin features are not here, such as bookmarks and the plugin's own settings pages.
 
 ## License
