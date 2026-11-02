@@ -166,6 +166,7 @@ class ReaderActivity : AppCompatActivity() {
                 applySettings()
             }
             addView(themeToggle)
+            addView(action("\u2630\uFE0E") { showToc() })
             addView(action("Aa") { showReaderSettings(this@ReaderActivity, readerSettings) { applySettings() } })
         }
         toolbar = bar
@@ -419,6 +420,27 @@ class ReaderActivity : AppCompatActivity() {
         }
         walk(pub.tableOfContents)
         return out
+    }
+
+    /** A list of the book's chapters; picking one jumps to it. */
+    private fun showToc() {
+        val pub = publication ?: return
+        val entries = mutableListOf<Pair<String, org.readium.r2.shared.publication.Link>>()
+        fun walk(links: List<org.readium.r2.shared.publication.Link>, depth: Int) {
+            for (link in links) {
+                val title = link.title?.trim()
+                if (!title.isNullOrBlank()) entries.add("    ".repeat(depth) + title to link)
+                walk(link.children, depth + 1)
+            }
+        }
+        walk(pub.tableOfContents, 0)
+        val builder = Display.dialogBuilder(this).setTitle("Contents")
+        val dialog = if (entries.isEmpty()) builder.setMessage("This book has no table of contents.").setPositiveButton("Close", null).show()
+        else builder.setItems(entries.map { it.first }.toTypedArray()) { _, which ->
+            navigator?.go(entries[which].second, animated = false)
+            toolbar?.visibility = View.GONE
+        }.setNegativeButton("Close", null).show()
+        Display.frame(dialog)
     }
 
     private fun applySettings() {
