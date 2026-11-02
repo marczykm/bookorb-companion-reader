@@ -140,6 +140,7 @@ private fun BrowseRow(app: App, coverBookId: Long?, title: String, subtitle: Str
         if (coverBookId != null) {
             AsyncImage(
                 model = app.api.thumbnailUrl(coverBookId), contentDescription = null, contentScale = ContentScale.Crop,
+                colorFilter = Display.imageFilter,
                 modifier = Modifier.then(if (round) Modifier.size(56.dp) else Modifier.width(56.dp).aspectRatio(2f / 3f)).clip(shape),
             )
         } else {

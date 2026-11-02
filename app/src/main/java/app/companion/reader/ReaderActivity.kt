@@ -128,7 +128,7 @@ class ReaderActivity : AppCompatActivity() {
         val container = FragmentContainerView(this).apply { id = View.generateViewId() }
         val spinner = ProgressBar(this)
         val chrome = ReaderChrome(this).also { chromeBars = it }
-        chrome.applyTheme(readerSettings.theme)
+        chrome.applyTheme(readerSettings.effectiveTheme)
         val swipeLayout = SwipeTurnLayout(this, canSwipe = { highlights?.selecting != true }) { forward ->
             navigator?.let { if (forward) it.goForward(animated = false) else it.goBackward(animated = false) }
         }.apply { addView(container, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT) }
@@ -163,7 +163,7 @@ class ReaderActivity : AppCompatActivity() {
         root.addView(bar, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP))
         // The same purple dot as in the app's other screens, while the server is being talked to.
         val syncDot = View(this).apply {
-            background = android.graphics.drawable.GradientDrawable().apply { shape = android.graphics.drawable.GradientDrawable.OVAL; setColor(0xFF6750A4.toInt()) }
+            background = android.graphics.drawable.GradientDrawable().apply { shape = android.graphics.drawable.GradientDrawable.OVAL; setColor(Display.dotColor) }
             visibility = View.GONE
         }
         val dotSize = (8 * resources.displayMetrics.density).toInt()
@@ -415,7 +415,7 @@ class ReaderActivity : AppCompatActivity() {
     private fun applySettings() {
         navigator?.submitPreferences(readerSettings.toPreferences())
         chromeBars?.let { c ->
-            c.applyTheme(readerSettings.theme)
+            c.applyTheme(readerSettings.effectiveTheme)
             (c.top.parent as? View)?.parent?.let { (it as? View)?.setBackgroundColor(c.backgroundColor) }
         }
     }

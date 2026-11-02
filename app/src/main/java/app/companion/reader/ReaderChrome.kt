@@ -201,7 +201,6 @@ class ReaderChrome(private val activity: AppCompatActivity) {
     fun applyTheme(theme: String) {
         val (bg, text, fill) = when (theme) {
             "dark" -> Triple(0xFF000000.toInt(), 0xFFC8C8C8.toInt(), 0xFFD0BCFF.toInt())
-            "sepia" -> Triple(0xFFFAF4E8.toInt(), 0xFF5A4A33.toInt(), 0xFF8A5A2B.toInt())
             else -> Triple(0xFFFFFFFF.toInt(), 0xFF333333.toInt(), 0xFF6750A4.toInt())
         }
         backgroundColor = bg

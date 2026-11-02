@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
         val app = application as App
         hideStatusBar()
         setContent {
-            MaterialTheme {
+            MaterialTheme(colorScheme = displayColors()) {
                 Surface(Modifier.fillMaxSize()) {
                     var loggedIn by remember { mutableStateOf(app.session.isLoggedIn) }
                     Box(Modifier.fillMaxSize()) {
@@ -181,6 +181,7 @@ fun BookTile(app: App, book: BookCard, onDevice: Boolean = false, onClick: () ->
                 model = app.api.thumbnailUrl(book.id),
                 contentDescription = book.title,
                 contentScale = ContentScale.Crop,
+                colorFilter = Display.imageFilter,
                 modifier = Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(MaterialTheme.shapes.small),
             )
             if (onDevice) {
@@ -209,7 +210,7 @@ fun SyncDot(app: App, modifier: Modifier = Modifier) {
         Box(
             modifier.windowInsetsPadding(WindowInsets.statusBars).padding(top = 14.dp, end = 48.dp)
                 .size(8.dp).clip(androidx.compose.foundation.shape.CircleShape)
-                .background(androidx.compose.ui.graphics.Color(0xFF6750A4)),
+                .background(androidx.compose.ui.graphics.Color(Display.dotColor)),
         )
     }
 }

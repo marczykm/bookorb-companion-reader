@@ -2,6 +2,7 @@ package app.companion.reader
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -40,8 +41,24 @@ fun SettingsScreen(onBack: () -> Unit) {
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } },
         )
     }) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp)) {
-            Text("Reading", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
+        Column(Modifier.padding(padding).fillMaxSize().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(horizontal = 16.dp)) {
+            Text("Display", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
+            Text("What kind of screen does this device have?", style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            ScreenType.values().forEach { option ->
+                Row(
+                    Modifier.fillMaxWidth().clickable { Display.set(context, option) }.padding(vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RadioButton(selected = Display.type == option, onClick = { Display.set(context, option) })
+                    Column(Modifier.padding(start = 8.dp)) {
+                        Text(option.label, style = MaterialTheme.typography.bodyLarge)
+                        Text(option.note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+
+            Text("Reading", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 24.dp, bottom = 8.dp))
             Row(
                 Modifier.fillMaxWidth().clickable { volumeKeys = !volumeKeys; settings.volumeKeys = volumeKeys }.padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,

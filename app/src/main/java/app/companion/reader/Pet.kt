@@ -104,10 +104,10 @@ fun PetCard(context: Context, data: Map<String, kotlinx.serialization.json.JsonO
     val sprite: @Composable () -> Unit = {
         Image(
             bitmap = Pets.sprites(context, pet).getValue(pose), contentDescription = "Reading companion",
-            filterQuality = FilterQuality.None, modifier = Modifier.size(when (size) { "s" -> 72.dp; "l" -> 152.dp; else -> 104.dp }),
+            filterQuality = FilterQuality.None, colorFilter = Display.imageFilter, modifier = Modifier.size(when (size) { "s" -> 72.dp; "l" -> 152.dp; else -> 104.dp }),
         )
     }
-    Card(Modifier.fillMaxWidth().fillMaxHeight().clickable { picking = true }) {
+    Card(Modifier.fillMaxWidth().fillMaxHeight().clickable { picking = true }, border = Display.cardBorder()) {
         if (size == "s") {
             // Half width: sprite above a single caption line.
             Column(Modifier.fillMaxWidth().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -137,7 +137,7 @@ fun PetCard(context: Context, data: Map<String, kotlinx.serialization.json.JsonO
                         Column(Modifier.clickable {
                             pet = name; prefs.edit().putString("pet", name).apply(); picking = false
                         }, horizontalAlignment = Alignment.CenterHorizontally) {
-                            Image(Pets.sprites(context, name).getValue("read"), name, filterQuality = FilterQuality.None, modifier = Modifier.size(72.dp))
+                            Image(Pets.sprites(context, name).getValue("read"), name, filterQuality = FilterQuality.None, colorFilter = Display.imageFilter, modifier = Modifier.size(72.dp))
                             Text(name.replaceFirstChar(Char::uppercase), style = MaterialTheme.typography.labelSmall)
                         }
                     }

@@ -15,7 +15,7 @@ import org.readium.r2.navigator.preferences.Theme
 const val DEFAULT_WORDS_PER_MINUTE = 230.0
 
 /** How the book is drawn, kept on the device and shared by every book. */
-class ReaderSettings(context: Context) {
+class ReaderSettings(private val context: Context) {
     private val prefs = context.getSharedPreferences("reader", Context.MODE_PRIVATE)
 
     /** Multiplier of the publisher's size, 1.0 = 100%. */
@@ -44,8 +44,15 @@ class ReaderSettings(context: Context) {
         set(v) = prefs.edit().putBoolean("justify", v).apply()
 
     var theme: String
-        get() = prefs.getString("theme", "light") ?: "light"
+        get() = prefs.getString("theme", "system") ?: "system"
         set(v) = prefs.edit().putString("theme", v).apply()
+
+    /** The theme actually drawn: "system" follows the device's light or dark mode. */
+    val effectiveTheme: String
+        get() = theme.takeIf { it == "light" || it == "dark" } ?: run {
+            val night = context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
+            if (night == android.content.res.Configuration.UI_MODE_NIGHT_YES) "dark" else "light"
+        }
 
     fun toPreferences() = EpubPreferences(
         fontSize = fontSize,
@@ -54,7 +61,7 @@ class ReaderSettings(context: Context) {
         textAlign = if (justify) TextAlign.JUSTIFY else null,
         hyphens = if (justify) true else null,
         publisherStyles = if (justify) false else null,
-        theme = when (theme) { "dark" -> Theme.DARK; "sepia" -> Theme.SEPIA; else -> Theme.LIGHT },
+        theme = when (effectiveTheme) { "dark" -> Theme.DARK; else -> Theme.LIGHT },
     )
 }
 
@@ -126,7 +133,7 @@ fun showReaderSettings(context: Context, settings: ReaderSettings, onChange: () 
         addView(TextView(context).apply { text = "Theme"; textSize = 15f; setPadding(0, pad(12), 0, 0) })
         addView(RadioGroup(context).apply {
             orientation = RadioGroup.HORIZONTAL
-            listOf("light" to "Light", "sepia" to "Sepia", "dark" to "Dark").forEach { (key, name) ->
+            listOf("system" to "Device", "light" to "Light", "dark" to "Dark").forEach { (key, name) ->
                 addView(RadioButton(context).apply {
                     id = View.generateViewId()
                     text = name
@@ -142,7 +149,7 @@ fun showReaderSettings(context: Context, settings: ReaderSettings, onChange: () 
         .setView(content)
         .setPositiveButton("Done", null)
         .setNeutralButton("Reset") { _, _ ->
-            settings.fontSize = 1.0; settings.margins = 1.0; settings.theme = "light"; settings.justify = false; settings.learnedPace = 0.0; onChange()
+            settings.fontSize = 1.0; settings.margins = 1.0; settings.theme = "system"; settings.justify = false; settings.learnedPace = 0.0; onChange()
         }
         .show()
 }

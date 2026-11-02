@@ -178,6 +178,7 @@ private fun BookRow(app: App, book: BookCard, onClick: () -> Unit) {
     Row(Modifier.fillMaxWidth().clickable(onClick = onClick), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         AsyncImage(
             model = app.api.thumbnailUrl(book.id), contentDescription = book.title, contentScale = ContentScale.Crop,
+                colorFilter = Display.imageFilter,
             modifier = Modifier.width(56.dp).aspectRatio(2f / 3f).clip(MaterialTheme.shapes.small),
         )
         Column(Modifier.weight(1f).align(Alignment.CenterVertically)) {
@@ -203,6 +204,7 @@ internal fun BookSheet(app: App, book: BookCard, onDismiss: () -> Unit, onChange
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 AsyncImage(
                     model = app.api.thumbnailUrl(book.id), contentDescription = null, contentScale = ContentScale.Crop,
+                colorFilter = Display.imageFilter,
                     modifier = Modifier.width(90.dp).aspectRatio(2f / 3f).clip(MaterialTheme.shapes.small),
                 )
                 Column(Modifier.align(Alignment.CenterVertically)) {

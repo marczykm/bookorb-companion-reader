@@ -154,12 +154,13 @@ fun HomeScreen(app: App, onLogout: () -> Unit, onOpenSettings: () -> Unit, onOpe
 
 @Composable
 private fun ContinueCard(app: App, book: BookCard, size: String, onClick: () -> Unit) {
-    Card(Modifier.fillMaxWidth().padding(horizontal = 16.dp).clickable(onClick = onClick)) {
+    Card(Modifier.fillMaxWidth().padding(horizontal = 16.dp).clickable(onClick = onClick), border = Display.cardBorder()) {
         Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             AsyncImage(
                 model = app.api.thumbnailUrl(book.id),
                 contentDescription = book.title,
                 contentScale = ContentScale.Crop,
+                colorFilter = Display.imageFilter,
                 modifier = Modifier.width(coverWidth(size, 110)).aspectRatio(2f / 3f).clip(MaterialTheme.shapes.small),
             )
             Column(Modifier.weight(1f).align(Alignment.CenterVertically)) {

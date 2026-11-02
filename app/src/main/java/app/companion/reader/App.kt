@@ -22,6 +22,7 @@ class App : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
         session = Session(this)
+        Display.load(this)
         api = ServerApi(session, cacheDir, filesDir)
         outbox = Outbox(File(filesDir, "outbox.json"))
         api.outbox = outbox
