@@ -151,7 +151,7 @@ class ReaderActivity : AppCompatActivity() {
             val dp = resources.displayMetrics.density
             setPadding((8 * dp).toInt(), (4 * dp).toInt(), (8 * dp).toInt(), (4 * dp).toInt())
             fun action(label: String, onClick: () -> Unit) = TextView(this@ReaderActivity).apply {
-                text = label; textSize = 20f; setTextColor(0xFFFFFFFF.toInt())
+                text = label; textSize = 28f; setTextColor(0xFFFFFFFF.toInt())
                 setPadding((16 * dp).toInt(), (10 * dp).toInt(), (16 * dp).toInt(), (10 * dp).toInt())
                 setOnClickListener { onClick() }
             }
