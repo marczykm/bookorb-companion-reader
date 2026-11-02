@@ -434,12 +434,21 @@ class ReaderActivity : AppCompatActivity() {
             }
         }
         walk(pub.tableOfContents, 0)
+        // The entry for the chapter being read: the last one starting at or before this page's file.
+        fun key(url: Any) = url.toString().substringBefore('#')
+        val order = pub.readingOrder.map { key(it.url()) }
+        val here = navigator?.currentLocator?.value?.let { order.indexOf(key(it.href)) } ?: -1
+        val current = entries.indexOfLast { (_, link) -> order.indexOf(key(link.url())).let { it in 0..here } }
+        val labels = entries.mapIndexed { i, e -> if (i == current) "\u25B8 " + e.first.trimStart() else e.first }
         val builder = Display.dialogBuilder(this).setTitle("Contents")
         val dialog = if (entries.isEmpty()) builder.setMessage("This book has no table of contents.").setPositiveButton("Close", null).show()
-        else builder.setItems(entries.map { it.first }.toTypedArray()) { _, which ->
+        else builder.setItems(labels.toTypedArray()) { _, which ->
             navigator?.go(entries[which].second, animated = false)
             toolbar?.visibility = View.GONE
-        }.setNegativeButton("Close", null).show()
+        }.setNegativeButton("Close", null).show().also { d ->
+            // Scroll so the current chapter sits a little below the top, with the one before it still in view.
+            if (current > 0) d.listView.post { d.listView.setSelection((current - 1).coerceAtLeast(0)) }
+        }
         Display.frame(dialog)
     }
 
