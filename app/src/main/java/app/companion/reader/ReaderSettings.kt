@@ -66,7 +66,9 @@ class ReaderSettings(private val context: Context) {
 }
 
 /** The "Aa" dialog: font size, margins and theme, applied as you press. */
-fun showReaderSettings(context: Context, settings: ReaderSettings, onChange: () -> Unit) {
+fun showReaderSettings(host: Context, settings: ReaderSettings, onChange: () -> Unit) {
+    // The controls take their colours from the theme of the context they are made with.
+    val context: Context = if (Display.mono) androidx.appcompat.view.ContextThemeWrapper(host, R.style.Dialog_Mono) else host
     val dp = context.resources.displayMetrics.density
     fun pad(v: Int) = (v * dp).toInt()
 
@@ -144,7 +146,7 @@ fun showReaderSettings(context: Context, settings: ReaderSettings, onChange: () 
             }
         })
     }
-    AlertDialog.Builder(context)
+    Display.dialogBuilder(host)
         .setTitle("Reading settings")
         .setView(content)
         .setPositiveButton("Done", null)

@@ -210,7 +210,7 @@ class ReaderChrome(private val activity: AppCompatActivity) {
         listOf(chapterText, clockText, batteryText, minutesText).forEach { it.setTextColor(text) }
         batteryIcon.color = text
         batteryIcon.cutoutColor = bg
-        progressView.fillColor = fill
+        progressView.fillColor = if (Display.mono) text else fill
         progressView.trackColor = (text and 0x00FFFFFF) or 0x40000000
         progressView.markColor = (text and 0x00FFFFFF) or 0xAA000000.toInt()
         progressView.invalidate()

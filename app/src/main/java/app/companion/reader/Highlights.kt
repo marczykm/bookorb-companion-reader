@@ -179,7 +179,7 @@ class HighlightSync(
 
     private fun showOptions(a: Annotation) {
         val names = COLORS.map { it.first.replaceFirstChar(Char::uppercase) } + "Delete highlight"
-        AlertDialog.Builder(activity)
+        Display.dialogBuilder(activity)
             .setTitle(a.text.take(80))
             .setItems(names.toTypedArray()) { _, which ->
                 activity.lifecycleScope.launch {

@@ -69,6 +69,11 @@ object Display {
         }
     }
 
+    /** A classic dialog builder; on a black and white screen its controls are black too. */
+    fun dialogBuilder(context: Context) =
+        if (mono) androidx.appcompat.app.AlertDialog.Builder(context, R.style.Dialog_Mono)
+        else androidx.appcompat.app.AlertDialog.Builder(context)
+
     /** The same outline for a classic Android dialog, once it is showing. */
     fun frame(dialog: androidx.appcompat.app.AlertDialog): androidx.appcompat.app.AlertDialog {
         if (!bordered) return dialog

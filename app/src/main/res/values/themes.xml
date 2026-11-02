@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.CompanionReader" parent="Theme.AppCompat.DayNight.NoActionBar" />
+
+    <!-- Dialogs on a black and white e-ink screen: every accent is black (white in night mode). -->
+    <style name="Dialog.Mono" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+        <item name="colorAccent">#000000</item>
+        <item name="colorControlActivated">#000000</item>
+        <item name="colorControlNormal">#444444</item>
+        <item name="colorButtonNormal">#E0E0E0</item>
+    </style>
 </resources>

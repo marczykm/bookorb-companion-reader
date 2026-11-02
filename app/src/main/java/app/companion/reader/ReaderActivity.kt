@@ -241,7 +241,7 @@ class ReaderActivity : AppCompatActivity() {
 
     private suspend fun askJump(serverPct: Double, localPct: Double): Boolean =
         kotlinx.coroutines.suspendCancellableCoroutine { cont ->
-            val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            val dialog = Display.dialogBuilder(this)
                 .setTitle("Continue from another device?")
                 .setMessage("Your server is at ${serverPct.toInt()}%, this device is at ${localPct.toInt()}%.")
                 .setCancelable(false)
