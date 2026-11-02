@@ -136,7 +136,7 @@ class ReaderActivity : AppCompatActivity() {
             orientation = LinearLayout.VERTICAL
             addView(chrome.top, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
             addView(swipeLayout, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
-            addView(chrome.bottom, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (28 * resources.displayMetrics.density).toInt()))
+            addView(chrome.bottom, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (38 * resources.displayMetrics.density).toInt()))
         }
         val root = FrameLayout(this).apply {
             setBackgroundColor(chrome.backgroundColor)
@@ -169,7 +169,7 @@ class ReaderActivity : AppCompatActivity() {
         val dotSize = (8 * resources.displayMetrics.density).toInt()
         root.addView(syncDot, FrameLayout.LayoutParams(dotSize, dotSize, Gravity.TOP or Gravity.END).apply {
             // Just left of the battery icon, level with the top bar's text.
-            topMargin = (11 * resources.displayMetrics.density).toInt(); marginEnd = (76 * resources.displayMetrics.density).toInt()
+            topMargin = (13 * resources.displayMetrics.density).toInt(); marginEnd = (96 * resources.displayMetrics.density).toInt()
         })
         lifecycleScope.launch {
             (application as App).api.syncing.collect { syncDot.visibility = if (it) View.VISIBLE else View.GONE }

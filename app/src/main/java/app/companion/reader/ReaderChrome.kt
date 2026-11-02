@@ -36,7 +36,7 @@ class BatteryIconView(context: Context) : View(context) {
     var cutoutColor = 0xFFFFFFFF.toInt()
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) =
-        setMeasuredDimension((22 * dp).toInt(), (12 * dp).toInt())
+        setMeasuredDimension((28 * dp).toInt(), (15 * dp).toInt())
 
     override fun onDraw(canvas: Canvas) {
         val stroke = 1.2f * dp
@@ -138,10 +138,10 @@ class ReaderChrome(private val activity: AppCompatActivity) {
     private fun px(v: Int) = (v * dp).toInt()
 
     private val chapterText = TextView(activity).apply {
-        textSize = 12f; maxLines = 1; ellipsize = TextUtils.TruncateAt.END; gravity = Gravity.START or Gravity.CENTER_VERTICAL
+        textSize = 16f; maxLines = 1; ellipsize = TextUtils.TruncateAt.END; gravity = Gravity.START or Gravity.CENTER_VERTICAL
     }
-    private val clockText = TextView(activity).apply { textSize = 12f; gravity = Gravity.CENTER }
-    private val batteryText = TextView(activity).apply { textSize = 12f; gravity = Gravity.END or Gravity.CENTER_VERTICAL }
+    private val clockText = TextView(activity).apply { textSize = 16f; gravity = Gravity.CENTER }
+    private val batteryText = TextView(activity).apply { textSize = 16f; gravity = Gravity.END or Gravity.CENTER_VERTICAL }
     private val batteryIcon = BatteryIconView(activity)
 
     /** Battery symbol followed by the percentage, pushed to the right edge. */
@@ -164,7 +164,7 @@ class ReaderChrome(private val activity: AppCompatActivity) {
     }
 
     private val minutesText = TextView(activity).apply {
-        textSize = 12f; gravity = Gravity.END or Gravity.CENTER_VERTICAL; maxLines = 1
+        textSize = 16f; gravity = Gravity.END or Gravity.CENTER_VERTICAL; maxLines = 1
     }
 
     /** The progress bar with the time left in the chapter beside it. */
@@ -200,9 +200,9 @@ class ReaderChrome(private val activity: AppCompatActivity) {
 
     fun applyTheme(theme: String) {
         val (bg, text, fill) = when (theme) {
-            "dark" -> Triple(0xFF000000.toInt(), 0xFF9E9E9E.toInt(), 0xFFD0BCFF.toInt())
-            "sepia" -> Triple(0xFFFAF4E8.toInt(), 0xFF7A6A53.toInt(), 0xFF8A5A2B.toInt())
-            else -> Triple(0xFFFFFFFF.toInt(), 0xFF666666.toInt(), 0xFF6750A4.toInt())
+            "dark" -> Triple(0xFF000000.toInt(), 0xFFC8C8C8.toInt(), 0xFFD0BCFF.toInt())
+            "sepia" -> Triple(0xFFFAF4E8.toInt(), 0xFF5A4A33.toInt(), 0xFF8A5A2B.toInt())
+            else -> Triple(0xFFFFFFFF.toInt(), 0xFF333333.toInt(), 0xFF6750A4.toInt())
         }
         backgroundColor = bg
         textColor = text
