@@ -6,6 +6,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +38,7 @@ val LocalWidgetSize = androidx.compose.runtime.compositionLocalOf { "m" }
 fun WidgetItem(id: String, data: Map<String, JsonObject>, hasBook: Boolean, size: String = "m") =
     androidx.compose.runtime.CompositionLocalProvider(LocalWidgetSize provides size) {
     when (id) {
+        "clock" -> ClockCard()
         "pet" -> PetCard(androidx.compose.ui.platform.LocalContext.current, data, hasBook)
         "reading-streak" -> data[id]?.let { StreakCard(it, Modifier) }
         "reading-goal" -> data[id]?.let { GoalCard(it, Modifier) }
@@ -56,6 +59,33 @@ private fun WidgetCard(title: String, modifier: Modifier = Modifier, content: @C
             Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             content()
         }
+    }
+}
+
+/** The time and date, in the phone's own 12 or 24 hour format. It needs nothing from the server. */
+@Composable
+private fun ClockCard() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var now by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(java.time.ZonedDateTime.now()) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        while (true) {
+            now = java.time.ZonedDateTime.now()
+            // Wake up just after the next minute starts.
+            kotlinx.coroutines.delay((60 - now.second) * 1000L - now.nano / 1_000_000 + 50)
+        }
+    }
+    val size = LocalWidgetSize.current
+    val pattern = if (android.text.format.DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm a"
+    val time = now.format(java.time.format.DateTimeFormatter.ofPattern(pattern))
+    val date = now.format(java.time.format.DateTimeFormatter.ofLocalizedDate(
+        if (size == "s") java.time.format.FormatStyle.MEDIUM else java.time.format.FormatStyle.FULL,
+    ))
+    WidgetCard("Clock") {
+        Text(
+            time,
+            style = when (size) { "s" -> MaterialTheme.typography.headlineMedium; "l" -> MaterialTheme.typography.displayLarge; else -> MaterialTheme.typography.displayMedium },
+        )
+        Text(date, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
