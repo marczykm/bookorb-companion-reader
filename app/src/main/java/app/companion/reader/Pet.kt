@@ -29,7 +29,7 @@ import java.time.LocalDateTime
 object Pets {
     val NAMES = listOf(
         "cat", "dog", "rabbit", "owl", "penguin", "robot", "vampire", "dragon",
-        "ghost", "mimic", "mummy", "witch", "skeleton", "candle", "alien",
+        "ghost", "mimic", "mummy", "witch", "skeleton", "candle", "alien", "claude", "dino",
     )
     private val cache = HashMap<String, Map<String, ImageBitmap>>()
 

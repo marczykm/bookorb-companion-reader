@@ -11,7 +11,7 @@ It looks and works like the BookOrbit KOReader plugin, as an Android reader. It 
 ## Features
 
 - **Sign in** to your server with its native token login. A server address typed without `http://` is tried over HTTPS, then HTTP.
-- **Home**: a continue-reading card, shelves, stat widgets, a clock (in your phone's 12 or 24 hour format), and a pixel-art reading companion (15 to choose from) that reacts to your reading. Each item can be hidden, reordered and resized, and small cards share a row.
+- **Home**: a continue-reading card, shelves, stat widgets, a clock (in your phone's 12 or 24 hour format), and a pixel-art reading companion (17 to choose from, including Claude and the offline dino from Chrome) that reacts to your reading. Each item can be hidden, reordered and resized, and small cards share a row.
 - **Library**: filter by library and read status, search, grid or list, set status and rating, and download books for offline reading.
 - **Browse** series, authors and SmartScopes.
 - **Reader**
