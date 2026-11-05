@@ -130,7 +130,7 @@ fun MainScreen(app: App, onLogout: () -> Unit) {
     ) { padding ->
         Box(Modifier.padding(padding)) {
             when (tab) {
-                0 -> HomeScreen(app, onLogout, openSettings, openApps)
+                0 -> HomeScreen(app, onLogout, openSettings, openApps) { go(Dest.Book(it)) }
                 1 -> BrowseScreen(app, onLogout, openSettings, go)
                 else -> MoreScreen(app, openSettings, go)
             }

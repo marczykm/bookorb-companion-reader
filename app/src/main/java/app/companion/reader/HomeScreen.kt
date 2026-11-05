@@ -46,7 +46,7 @@ fun openBook(context: Context, book: BookCard): Boolean {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(app: App, onLogout: () -> Unit, onOpenSettings: () -> Unit, onOpenApps: (() -> Unit)? = null) {
+fun HomeScreen(app: App, onLogout: () -> Unit, onOpenSettings: () -> Unit, onOpenApps: (() -> Unit)? = null, onOpenBook: (BookCard) -> Unit = {}) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var shelves by remember { mutableStateOf<Map<String, List<BookCard>>>(emptyMap()) }
@@ -128,17 +128,17 @@ fun HomeScreen(app: App, onLogout: () -> Unit, onOpenSettings: () -> Unit, onOpe
                         val size = layout.sizeOf(id)
                         when {
                             id == "hero" -> {
-                                if (current.isNotEmpty()) ContinueCard(app, current.first(), size) { open(current.first()) }
+                                if (current.isNotEmpty()) ContinueCard(app, current.first(), size, onOpen = { onOpenBook(current.first()) }) { open(current.first()) }
                                 else if (!loading && error == null) {
                                     Text("Nothing in progress. Pick a book from the library.", Modifier.padding(horizontal = 16.dp),
                                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
-                            id == "shelf:continue" -> if (current.size > 1) Shelf(app, "Continue reading", current.drop(1), size, ::open)
+                            id == "shelf:continue" -> if (current.size > 1) Shelf(app, "Continue reading", current.drop(1), size, onOpenBook)
                             id.startsWith("shelf:") -> {
                                 val key = id.removePrefix("shelf:")
                                 val books = shelves[key].orEmpty()
-                                if (books.isNotEmpty()) Shelf(app, SHELF_TITLES.getValue(key), books, size, ::open)
+                                if (books.isNotEmpty()) Shelf(app, SHELF_TITLES.getValue(key), books, size, onOpenBook)
                             }
                             widgets.isNotEmpty() -> Box(Modifier.padding(horizontal = 16.dp)) { WidgetItem(id, widgets, current.isNotEmpty(), size) }
                         }
@@ -152,8 +152,8 @@ fun HomeScreen(app: App, onLogout: () -> Unit, onOpenSettings: () -> Unit, onOpe
 }
 
 @Composable
-private fun ContinueCard(app: App, book: BookCard, size: String, onClick: () -> Unit) {
-    Card(Modifier.fillMaxWidth().padding(horizontal = 16.dp).clickable(onClick = onClick), border = Display.cardBorder()) {
+private fun ContinueCard(app: App, book: BookCard, size: String, onOpen: () -> Unit, onClick: () -> Unit) {
+    Card(Modifier.fillMaxWidth().padding(horizontal = 16.dp).clickable(onClick = onOpen), border = Display.cardBorder()) {
         Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             AsyncImage(
                 model = app.api.thumbnailUrl(book.id),
