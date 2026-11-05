@@ -43,6 +43,7 @@ for i, (t, a, s, idx) in enumerate(TITLES, 1):
 PROGRESS = {101: 35.0}
 ANN = {1: [dict(id=1, bookId=1, cfi="epubcfi(/6/2!/4/2/2,/1:0,/1:59)", text="This unique sentence is the highlight target for testing.", color="#4ADE80", style="highlight", note=None, origin="web")]}
 NEXT_ANN = [10]
+JOURNAL = []
 ACCESS = set(); REFRESH = {}; OFFLINE = False
 LOG = open("requests.log", "a")
 
@@ -176,6 +177,71 @@ class H(BaseHTTPRequestHandler):
             return self.send(200, dict(items=items, total=len(items), page=0, size=50))
         m = re.fullmatch(r"/authors/(\d+)/books", p)
         if m: n = sorted({b["authors"][0] for b in BOOKS.values()})[int(m[1]) - 1]; items = [b for b in BOOKS.values() if b["authors"][0] == n]; return self.send(200, dict(items=items, total=len(items), page=0, size=50))
+        # ---- Statistics, history, highlights hub and the book page (added for the iOS-parity screens) ----
+        today = datetime.date.today()
+        if p == "/reading-history":
+            items = []
+            for n in range(1, 13):
+                d = today - datetime.timedelta(days=n * 11)
+                b = BOOKS[(n - 1) % len(BOOKS) + 1]
+                items.append(dict(id=n, bookId=b["id"], title=b["title"], authors=b["authors"], seriesName=b["seriesName"], seriesIndex=(1 if b["seriesName"] else None), format="epub",
+                                  endedOn=str(d), outcome=("abandoned" if n == 5 else "completed"), readNumber=(2 if n == 3 else 1), progressPercent=100, seconds=3600 * n, rating=(4.5 if n % 3 == 0 else None), highlightCount=n % 4, journalCount=0))
+            months = {}
+            for it in items: months.setdefault(it["endedOn"][:7], []).append(it)
+            ms = [dict(month=k, reads=len(v), seconds=sum(i["seconds"] for i in v)) for k, v in sorted(months.items(), reverse=True)]
+            return self.send(200, dict(items=items, offset=0, total=len(items), months=ms))
+        if p == "/reading-history/summary":
+            return self.send(200, dict(years=[dict(year=today.year, reads=12), dict(year=today.year - 1, reads=20)], reads=12, books=11, rereads=1,
+                                       months=[dict(month=m, reads=(m * 7) % 4) for m in range(1, 13)], goal=dict(target=24, reached=9, metOn=None)))
+        if p == "/user-statistics/activity-overview":
+            days = [dict(day=str(today - datetime.timedelta(days=89 - i)), totalSeconds=(i * 97 % 3000), readingSeconds=(i * 97 % 3000), listeningSeconds=0, sessionsCount=(i % 3)) for i in range(90)]
+            return self.send(200, dict(
+                snapshot=dict(today=dict(totalSeconds=1500, readingSeconds=1500, listeningSeconds=0), lastSevenDays=dict(totalSeconds=9000, readingSeconds=8000, listeningSeconds=1000),
+                              previousSevenDays=dict(totalSeconds=7200, readingSeconds=7200, listeningSeconds=0), currentStreak=7, longestStreak=12, completedBooksYtd=9),
+                dailyActivity=dict(days=days), calendar=dict(year=today.year, availableYears=[today.year, today.year - 1], days=days),
+                goal=dict(year=today.year, goalBooks=24, completedBooks=9, projectedBooks=15.5, status="behind", points=[dict(month=m, actualCumulative=min(m, 9), targetCumulative=m * 2) for m in range(1, 13)]),
+                rhythm=dict(weekdays=[dict(dayOfWeek=i, averageSeconds=600 * (i + 1)) for i in range(7)], hours=[dict(hour=h, totalSeconds=300 * (h % 7)) for h in range(24)], favoriteDayOfWeek=3, peakHour=21),
+                completion=dict(months=[dict(year=today.year, month=m, count=(m % 3)) for m in range(1, 13)]),
+                sources=dict(totals=dict(totalSeconds=9000, readingSeconds=8000, listeningSeconds=1000), slices=[dict(bucket="android", totalSeconds=6000), dict(bucket="bookorbit", totalSeconds=2000), dict(bucket="kobo", totalSeconds=1000)]),
+                pace=dict(eligibleSessions=14, medianDurationSeconds=1260, medianProgressDelta=4)))
+        m = re.fullmatch(r"/user-statistics/activity-calendar/(\d+)", p)
+        if m:
+            y = int(m[1]); return self.send(200, dict(year=y, availableYears=[today.year, today.year - 1], days=[dict(day=f"{y}-03-{d:02d}", totalSeconds=d * 100, readingSeconds=d * 100, listeningSeconds=0, sessionsCount=1) for d in range(1, 28)]))
+        if p == "/achievements":
+            def a(key, cat, name, rar, earned, prog=None, thr=None, tier=None, group=None, icon="trophy", hidden=False):
+                return dict(key=key, groupKey=group, tier=tier, category=cat, name=name, description=f"{name} description", iconName=icon, rarity=rar, threshold=thr, hidden=hidden, sortOrder=0, earned=earned, awardedAt=("2026-10-20T10:00:00Z" if earned else None), currentProgress=prog)
+            cats = [dict(key="reading", label="Reading", earnedCount=3, totalCount=5, achievements=[
+                        a("r1", "reading", "First Book", "common", True, icon="book-open"), a("r2", "reading", "Bookworm I", "common", True, 10, 10, 1, "bw", "library"),
+                        a("r3", "reading", "Bookworm II", "rare", False, 10, 25, 2, "bw", "library"), a("r4", "reading", "Night Owl", "epic", True, icon="moon"), a("r5", "reading", "Marathon", "legendary", False, 3, 8, icon="flame")]),
+                    dict(key="devices", label="Devices", earnedCount=0, totalCount=1, achievements=[a("d1", "devices", "Secret", "epic", False, hidden=True)])]
+            return self.send(200, dict(categories=cats, totalEarned=3, totalAvailable=6))
+        if p == "/annotations/overview": return self.send(200, dict(total=14, books=3, withNotes=2, colorBreakdown=[dict(color="yellow", count=8), dict(color="green", count=4), dict(color="pink", count=2)]))
+        if p == "/annotations" and method == "GET":
+            items = [dict(id=100 + n, bookId=(n % 3) + 1, text=f"Highlighted passage number {n} with some words in it.", color=["yellow", "green", "pink"][n % 3], style="highlight",
+                          note=("A note on it" if n % 4 == 0 else None), chapterTitle=f"Chapter {n}", origin=("web" if n % 2 else "koreader"), highlightedAt=str(today - datetime.timedelta(days=n * 9)) + "T08:00:00Z",
+                          bookTitle=BOOKS[(n % 3) + 1]["title"], author=BOOKS[(n % 3) + 1]["authors"][0], starredAt=("2026-10-01T00:00:00Z" if n == 2 else None)) for n in range(14)]
+            return self.send(200, dict(items=items, total=len(items), page=1, pageSize=50))
+        m = re.fullmatch(r"/books/(\d+)", p)
+        if m and method == "GET":
+            b = BOOKS[int(m[1])]
+            return self.send(200, dict(id=b["id"], title=b["title"], subtitle=None, description="<p>A <b>mock</b> book about foxes &amp; rivers. " + "Lorem ipsum dolor sit amet. " * 8 + "</p>", isbn13="9781234567890", publisher="Mock House",
+                                       publishedYear=2019, language="en", pageCount=320, seriesId=1 if b["seriesName"] else None, seriesName=b["seriesName"], seriesIndex=("1" if b["seriesName"] else None), rating=b["rating"],
+                                       personalNote=None, libraryName="Main", addedAt="2026-01-05T10:00:00Z", authors=[dict(id=1, name=b["authors"][0])], genres=["Fiction", "Nature"],
+                                       files=[dict(id=b["files"][0]["id"], format="epub", role="primary", sizeBytes=1234567)], collections=[dict(id=1, name="Favourites")], readStatus=b["readStatus"]))
+        m = re.fullmatch(r"/books/(\d+)/(recommendations|series-books|author-books)", p)
+        if m: return self.send(200, [dict(id=i, title=BOOKS[i]["title"], authors=BOOKS[i]["authors"], seriesIndex=i, hasCover=True) for i in BOOKS if i != int(m[1])][:4])
+        m = re.fullmatch(r"/books/(\d+)/journal", p)
+        if m:
+            if method == "POST": JOURNAL.append(dict(id=len(JOURNAL) + 1, clientId=body["clientId"], body=body["body"], positionPercent=body.get("positionPercent"), createdAt="2026-11-05T09:00:00Z")); return self.send(201, JOURNAL[-1])
+            return self.send(200, JOURNAL)
+        m = re.fullmatch(r"/books/(\d+)/personal-note", p)
+        if m and method == "PATCH": return self.send(200, {})
+        m = re.fullmatch(r"/books/(\d+)/sessions", p)
+        if m and method == "GET":
+            items = [dict(id=n, startedAt=str(today - datetime.timedelta(days=n // 2)) + f"T{8 + n}:00:00Z", endedAt=str(today - datetime.timedelta(days=n // 2)) + f"T{8 + n}:30:00Z", durationSeconds=(5 if n == 3 else 600 * n), endProgress=10 * (8 - n), progressDelta=(0 if n == 3 else 8), source=["android", "kobo", "web"][n % 3]) for n in range(1, 8)]
+            return self.send(200, dict(items=items, total=len(items), page=1, pageSize=100, stats=dict(totalSessions=7, totalSeconds=sum(i["durationSeconds"] for i in items), firstSessionAt=items[-1]["startedAt"], lastSessionAt=items[0]["startedAt"],
+                             bySource=[dict(bucket="android", totalSeconds=5000, totalSessions=3), dict(bucket="kobo", totalSeconds=3000, totalSessions=2)], dailySummary=[dict(day=str(today - datetime.timedelta(days=k)), totalMinutes=20 + k * 5) for k in range(3, -1, -1)],
+                             progressSummary=[dict(day=str(today - datetime.timedelta(days=k)), endProgress=70 - k * 15) for k in range(3, -1, -1)], paceProgressDelta=4, paceDurationSeconds=1200, latestEndProgress=70)))
         return self.send(404, {"message": "unhandled " + p})
     def tokens(self):
         a = "acc-" + secrets.token_hex(8); r = secrets.token_hex(32); ACCESS.add(a); REFRESH[r] = 1

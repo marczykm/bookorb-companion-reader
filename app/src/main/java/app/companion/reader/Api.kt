@@ -16,6 +16,7 @@ import okhttp3.Response
 import okhttp3.Route
 import java.io.File
 import java.io.IOException
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.doubleOrNull
@@ -419,6 +420,99 @@ class ServerApi(private val session: Session, val cacheDir: File, private val fi
 
     suspend fun authorBooks(id: Long, page: Int): BooksPage = withContext(Dispatchers.IO) {
         get("/authors/$id/books", q(null, page)) { json.decodeFromString<BooksPage>(it).withPending() }
+    }
+
+    // ---- Reading history ----
+
+    /** A page of finished reads. [year] null means all time. */
+    suspend fun history(year: Int?, search: String?, offset: Int, limit: Int = 50): HistoryPage = withContext(Dispatchers.IO) {
+        val query = buildMap {
+            put("outcomes", "completed,skimmed,abandoned"); put("sort", "newest"); put("offset", offset.toString()); put("limit", limit.toString())
+            year?.let { put("year", it.toString()) }
+            search?.trim()?.takeIf { it.isNotEmpty() }?.let { put("search", it) }
+        }
+        get("/reading-history", query) { json.decodeFromString<HistoryPage>(it) }
+    }
+
+    suspend fun historySummary(year: Int?): HistorySummary = withContext(Dispatchers.IO) {
+        get("/reading-history/summary", year?.let { mapOf("year" to it.toString()) } ?: emptyMap()) { json.decodeFromString<HistorySummary>(it) }
+    }
+
+    // ---- Activity ----
+
+    suspend fun activityOverview(): ActivityOverview = withContext(Dispatchers.IO) {
+        get("/user-statistics/activity-overview", emptyMap()) { json.decodeFromString<ActivityOverview>(it) }
+    }
+
+    suspend fun activityCalendar(year: Int): ActivityCalendar = withContext(Dispatchers.IO) {
+        get("/user-statistics/activity-calendar/$year", emptyMap()) { json.decodeFromString<ActivityCalendar>(it) }
+    }
+
+    suspend fun achievements(): AchievementCatalogue = withContext(Dispatchers.IO) {
+        get("/achievements", emptyMap()) { json.decodeFromString<AchievementCatalogue>(it) }
+    }
+
+    // ---- Highlights hub ----
+
+    suspend fun hubHighlights(page: Int, search: String?, colors: List<String>, hasNote: Boolean, pageSize: Int = 50): HubPage = withContext(Dispatchers.IO) {
+        val query = buildMap {
+            put("page", page.toString()); put("pageSize", pageSize.toString()); put("sortBy", "createdAt"); put("sortDir", "desc")
+            search?.trim()?.takeIf { it.isNotEmpty() }?.let { put("search", it) }
+            if (colors.isNotEmpty()) put("colors", colors.joinToString(","))
+            if (hasNote) put("hasNote", "true")
+        }
+        get("/annotations", query) { json.decodeFromString<HubPage>(it) }
+    }
+
+    suspend fun hubOverview(): HubOverview = withContext(Dispatchers.IO) {
+        get("/annotations/overview", emptyMap()) { json.decodeFromString<HubOverview>(it) }
+    }
+
+    // ---- Book page ----
+
+    suspend fun bookDetail(id: Long): BookDetail = withContext(Dispatchers.IO) {
+        get("/books/$id", emptyMap()) { json.decodeFromString<BookDetail>(it) }
+    }
+
+    private suspend fun related(bookId: Long, kind: String): List<RelatedBook> = withContext(Dispatchers.IO) {
+        runCatching { get("/books/$bookId/$kind", emptyMap()) { json.decodeFromString<List<RelatedBook>>(it) } }.getOrDefault(emptyList())
+    }
+    suspend fun recommendations(bookId: Long) = related(bookId, "recommendations")
+    suspend fun seriesBooks(bookId: Long) = related(bookId, "series-books")
+    suspend fun authorBooks(bookId: Long) = related(bookId, "author-books")
+
+    suspend fun journal(bookId: Long): List<JournalEntry> = withContext(Dispatchers.IO) {
+        runCatching { get("/books/$bookId/journal", emptyMap()) { json.decodeFromString<List<JournalEntry>>(it) } }.getOrDefault(emptyList())
+    }
+
+    /** Every reading session of a book, newest first (the server pages by 100). */
+    suspend fun sessions(bookId: Long): SessionsPage = withContext(Dispatchers.IO) {
+        fun query(page: Int) = mapOf("page" to page.toString(), "pageSize" to "100", "sortBy" to "startedAt", "sortDir" to "desc")
+        var first = get("/books/$bookId/sessions", query(1)) { json.decodeFromString<SessionsPage>(it) }
+        var page = 1
+        while (first.items.size < first.total && page < 20) {
+            page++
+            val more = get("/books/$bookId/sessions", query(page)) { json.decodeFromString<SessionsPage>(it) }
+            if (more.items.isEmpty()) break
+            first = first.copy(items = first.items + more.items)
+        }
+        first
+    }
+
+    suspend fun addJournalEntry(bookId: Long, body: String, positionPercent: Double?) = withContext(Dispatchers.IO) {
+        val payload = kotlinx.serialization.json.buildJsonObject {
+            put("clientId", JsonPrimitive(java.util.UUID.randomUUID().toString()))
+            put("body", JsonPrimitive(body))
+            positionPercent?.let { put("positionPercent", JsonPrimitive(it)) }
+        }
+        Request.Builder().url(url("/books/$bookId/journal")).post(payload.toString().toRequestBody(jsonType)).build().fetchText()
+        Unit
+    }
+
+    suspend fun setPersonalNote(bookId: Long, note: String?) = withContext(Dispatchers.IO) {
+        val payload = kotlinx.serialization.json.buildJsonObject { put("note", note?.let { JsonPrimitive(it) } ?: kotlinx.serialization.json.JsonNull) }
+        Request.Builder().url(url("/books/$bookId/personal-note")).patch(payload.toString().toRequestBody(jsonType)).build().fetchText()
+        Unit
     }
 
     suspend fun annotations(bookId: Long, fileId: Long): List<Annotation>? = withContext(Dispatchers.IO) {

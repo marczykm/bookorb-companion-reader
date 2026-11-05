@@ -102,6 +102,21 @@ fun MainScreen(app: App, onLogout: () -> Unit) {
     val openSettings = { settingsOpen = true }
     // The All apps shortcut only appears once the Home entry is switched on in Settings.
     val openApps: (() -> Unit)? = if (Launcher.isEnabled(context)) ({ appsOpen = true }) else null
+    // Pages opened from a tab (a book, a series, History...) stack on top of it; Back pops one.
+    val stack = remember { mutableStateListOf<Dest>() }
+    val go: (Dest) -> Unit = { stack.add(it) }
+    val back: () -> Unit = { stack.removeLastOrNull() }
+    stack.lastOrNull()?.let { top ->
+        when (top) {
+            is Dest.Book -> BookPage(app, top.book, back, onLogout, go)
+            is Dest.Collection -> CollectionScreen(app, top.kind, top.id, top.title, back, onLogout) { go(Dest.Book(it)) }
+            is Dest.Timeline -> TimelineScreen(app, top.book, top.title, top.sessions, back)
+            Dest.History -> HistoryScreen(app, back, onLogout) { go(Dest.Book(it)) }
+            Dest.Activity -> ActivityScreen(app, back, onLogout)
+            Dest.Highlights -> HighlightsHubScreen(app, back, onLogout)
+        }
+        return
+    }
     // As the Home app, Back must not close the screen the phone returns to; it goes to the Home tab instead.
     androidx.activity.compose.BackHandler(enabled = Launcher.isDefaultHome(context)) { tab = 0 }
     Scaffold(
@@ -109,15 +124,15 @@ fun MainScreen(app: App, onLogout: () -> Unit) {
             NavigationBar {
                 NavigationBarItem(tab == 0, { tab = 0 }, { Icon(Icons.Default.Home, null) }, label = { Text("Home") })
                 NavigationBarItem(tab == 1, { tab = 1 }, { Icon(Icons.AutoMirrored.Filled.LibraryBooks, null) }, label = { Text("Library") })
-                NavigationBarItem(tab == 2, { tab = 2 }, { Icon(Icons.Default.Menu, null) }, label = { Text("Browse") })
+                NavigationBarItem(tab == 2, { tab = 2 }, { Icon(Icons.Default.Menu, null) }, label = { Text("More") })
             }
         },
     ) { padding ->
         Box(Modifier.padding(padding)) {
             when (tab) {
                 0 -> HomeScreen(app, onLogout, openSettings, openApps)
-                1 -> LibraryScreen(app, onLogout, openSettings)
-                else -> BrowseScreen(app, onLogout, openSettings)
+                1 -> BrowseScreen(app, onLogout, openSettings, go)
+                else -> MoreScreen(app, openSettings, go)
             }
         }
     }

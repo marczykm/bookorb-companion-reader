@@ -12,8 +12,9 @@ It looks and works like the BookOrbit KOReader plugin, as an Android reader. It 
 
 - **Sign in** to your server with its native token login. A server address typed without `http://` is tried over HTTPS, then HTTP.
 - **Home**: a continue-reading card, shelves, stat widgets, a clock (in your phone's 12 or 24 hour format), and a pixel-art reading companion (17 to choose from, including Claude and the offline dino from Chrome) that reacts to your reading. Each item can be hidden, reordered and resized, and small cards share a row.
-- **Library**: filter by library and read status, search, grid or list, set status and rating, and download books for offline reading.
-- **Browse** series, authors and SmartScopes.
+- **Library** has four tabs: *All* books (filter by library and read status, search, grid or list), *Series*, *Authors* and *Scopes* (SmartScopes).
+- **Book page**: cover, a Continue Reading button with your progress, status, rating, offline download, details, a notebook and private review, related books, and a reading **Timeline** (every session by day and device, with time left at your own pace).
+- **More** tab: **History** (finished reads by month with a year summary and goal), **Activity** (weekly snapshot, daily bars, annual goal, reading calendar, rhythm, completion, sources, pace, and Achievements) and **Highlights** (all highlights by month, with search and colour and note filters).
 - **Reader**
   - Font size, margins, a day/night button next to Aa and optional justified text.
   - A top bar with the chapter, the clock and the battery, and a bottom bar with book progress marked with chapters and an estimate of the minutes left in the chapter, learned from your own reading speed.
@@ -43,7 +44,7 @@ The APK is written to `app/build/outputs/apk/debug/app-debug.apk`. Create a `loc
 ./gradlew :app:testDebugUnitTest
 ```
 
-They cover the offline outbox (coalescing, offline highlight edits, surviving a restart), when reading progress is uploaded, the reading companion's poses and captions, and the Home layout.
+They also cover the time formats and the decoding of the statistics screens. They cover the offline outbox (coalescing, offline highlight edits, surviving a restart), when reading progress is uploaded, the reading companion's poses and captions, and the Home layout.
 
 ## Testing without a server
 
