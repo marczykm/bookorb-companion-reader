@@ -11,7 +11,7 @@ It looks and works like the BookOrbit KOReader plugin, as an Android reader. It 
 ## Features
 
 - **Sign in** to your server with its native token login. A server address typed without `http://` is tried over HTTPS, then HTTP.
-- **Home**: a continue-reading card, shelves, stat widgets, a clock (in your phone's 12 or 24 hour format), and a pixel-art reading companion (17 to choose from, including Claude and the offline dino from Chrome) that reacts to your reading. Each item can be hidden, reordered and resized, and small cards share a row.
+- **Home**: a continue-reading card, shelves, stat widgets, and a pixel-art reading companion (17 to choose from, including Claude and the offline dino from Chrome) that reacts to your reading. Each item can be hidden, reordered and resized, and small cards share a row.
 - **Library** has four tabs: *All* books (filter by library and read status, search, grid or list), *Series*, *Authors* and *Scopes* (SmartScopes).
 - **Book page**: cover, a Continue Reading button with your progress, status, rating, offline download, details, a notebook and private review, related books, and a reading **Timeline** (every session by day and device, with time left at your own pace).
 - **More** tab: **History** (finished reads by month with a year summary and goal), **Activity** (weekly snapshot, daily bars, annual goal, reading calendar, rhythm, completion, sources, pace, and Achievements) and **Highlights** (all highlights by month, with search and colour and note filters).

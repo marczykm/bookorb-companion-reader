@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 /** What the Home tab can show, in the default order. */
 val HOME_ITEMS: List<Pair<String, String>> = listOf(
     "hero" to "Continue reading card",
-    "clock" to "Clock",
     "pet" to "Reading companion",
     "reading-streak" to "Reading streak",
     "reading-goal" to "Yearly goal",
@@ -25,7 +24,6 @@ val HOME_ITEMS: List<Pair<String, String>> = listOf(
     "monthly-challenge" to "Monthly challenge",
     "highlight-of-the-day" to "Highlight of the day",
     "long-wait" to "Waiting the longest",
-    "library-overview" to "Library overview",
     "shelf:continue" to "More in progress",
     "shelf:next" to "Up next in series",
     "shelf:want" to "Want to read",

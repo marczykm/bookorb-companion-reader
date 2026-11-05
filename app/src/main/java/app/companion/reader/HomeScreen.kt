@@ -140,7 +140,6 @@ fun HomeScreen(app: App, onLogout: () -> Unit, onOpenSettings: () -> Unit, onOpe
                                 val books = shelves[key].orEmpty()
                                 if (books.isNotEmpty()) Shelf(app, SHELF_TITLES.getValue(key), books, size, ::open)
                             }
-                            id == "clock" -> Box(Modifier.padding(horizontal = 16.dp)) { WidgetItem(id, widgets, current.isNotEmpty(), size) }
                             widgets.isNotEmpty() -> Box(Modifier.padding(horizontal = 16.dp)) { WidgetItem(id, widgets, current.isNotEmpty(), size) }
                         }
                     }

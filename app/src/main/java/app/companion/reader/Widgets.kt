@@ -23,7 +23,7 @@ import kotlinx.serialization.json.contentOrNull
 /** Dashboard widgets requested from the server, in display order. */
 val WIDGET_TYPES = listOf(
     "reading-streak", "reading-goal", "reading-rhythm", "year-projection",
-    "monthly-challenge", "highlight-of-the-day", "library-overview", "long-wait",
+    "monthly-challenge", "highlight-of-the-day", "long-wait",
 )
 
 private fun JsonObject.num(key: String) = (this[key] as? JsonPrimitive)?.doubleOrNull
@@ -38,7 +38,6 @@ val LocalWidgetSize = androidx.compose.runtime.compositionLocalOf { "m" }
 fun WidgetItem(id: String, data: Map<String, JsonObject>, hasBook: Boolean, size: String = "m") =
     androidx.compose.runtime.CompositionLocalProvider(LocalWidgetSize provides size) {
     when (id) {
-        "clock" -> ClockCard()
         "pet" -> PetCard(androidx.compose.ui.platform.LocalContext.current, data, hasBook)
         "reading-streak" -> data[id]?.let { StreakCard(it, Modifier) }
         "reading-goal" -> data[id]?.let { GoalCard(it, Modifier) }
@@ -47,7 +46,6 @@ fun WidgetItem(id: String, data: Map<String, JsonObject>, hasBook: Boolean, size
         "monthly-challenge" -> data[id]?.let { ChallengeCard(it) }
         "highlight-of-the-day" -> data[id]?.let { HighlightCard(it) }
         "long-wait" -> data[id]?.let { LongWaitCard(it) }
-        "library-overview" -> data[id]?.let { OverviewCard(it) }
     }
     }
 
@@ -59,33 +57,6 @@ private fun WidgetCard(title: String, modifier: Modifier = Modifier, content: @C
             Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             content()
         }
-    }
-}
-
-/** The time and date, in the phone's own 12 or 24 hour format. It needs nothing from the server. */
-@Composable
-private fun ClockCard() {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    var now by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(java.time.ZonedDateTime.now()) }
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        while (true) {
-            now = java.time.ZonedDateTime.now()
-            // Wake up just after the next minute starts.
-            kotlinx.coroutines.delay((60 - now.second) * 1000L - now.nano / 1_000_000 + 50)
-        }
-    }
-    val size = LocalWidgetSize.current
-    val pattern = if (android.text.format.DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm a"
-    val time = now.format(java.time.format.DateTimeFormatter.ofPattern(pattern))
-    val date = now.format(java.time.format.DateTimeFormatter.ofLocalizedDate(
-        if (size == "s") java.time.format.FormatStyle.MEDIUM else java.time.format.FormatStyle.FULL,
-    ))
-    WidgetCard("Clock") {
-        Text(
-            time,
-            style = when (size) { "s" -> MaterialTheme.typography.headlineMedium; "l" -> MaterialTheme.typography.displayLarge; else -> MaterialTheme.typography.displayMedium },
-        )
-        Text(date, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -166,18 +137,4 @@ private fun HighlightCard(d: JsonObject) = WidgetCard("Highlight of the day") {
 private fun LongWaitCard(d: JsonObject) = WidgetCard("Waiting the longest") {
     Text(d.str("title") ?: "Untitled", style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
     Text("On your shelf for ${d.int("waitingDays") ?: 0} days", style = MaterialTheme.typography.bodySmall)
-}
-
-@Composable
-private fun OverviewCard(d: JsonObject) = WidgetCard("Library") {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        listOf("Books" to "totalBooks", "Authors" to "totalAuthors", "Series" to "totalSeries", "This year" to "booksAddedThisYear")
-            .let { if (LocalWidgetSize.current == "s") it.take(2) else it }
-            .forEach { (label, key) ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${d.int(key) ?: 0}", style = MaterialTheme.typography.titleLarge)
-                    Text(label, style = MaterialTheme.typography.labelSmall)
-                }
-            }
-    }
 }
