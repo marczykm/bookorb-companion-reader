@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Home
@@ -91,7 +90,7 @@ fun MainScreen(app: App, onLogout: () -> Unit) {
     // Settings is a page of its own, reached with the gear in each tab's top bar; Back returns to the tab.
     if (settingsOpen) {
         androidx.activity.compose.BackHandler { settingsOpen = false }
-        SettingsScreen(onBack = { settingsOpen = false })
+        SettingsScreen(app, onBack = { settingsOpen = false }, onLogout = { settingsOpen = false; onLogout() })
         return
     }
     if (appsOpen) {

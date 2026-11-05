@@ -24,7 +24,7 @@ It looks and works like the BookOrbit KOReader plugin, as an Android reader. It 
   - Progress syncs every 10 pages and when you leave the book. Reading time syncs when you stop reading. Opening a book offers to jump to a further position from another device, or stay where you are.
 - **Works offline**: saved data and downloaded books keep working with no connection. Progress, highlights, status and rating are queued and sent in the background when the server is reachable, with no error dialogs. A crossed-out Wi-Fi icon on Home shows when the server can't be reached.
 - **Sync indicator**: a small purple dot, like the privacy dot for the camera, shows while the app is talking to the server.
-- **Settings** (the gear in the top bar): choose your screen type, turn volume-key page turning on or off, and optionally use the app as your phone's Home app.
+- **Settings** (the gear in the top bar): choose your screen type, turn volume-key page turning on or off, optionally use the app as your phone's Home app, and sign out.
 - **E-ink screens**: set the screen type in Settings. *E-ink, colour* draws outlines around widgets; *E-ink, black and white* adds outlines and shows everything in greys.
 - **Home app mode** (off by default): the app can act as your Home screen, with an All apps screen. Android asks you to confirm the choice. Some devices, such as Boox e-readers, may switch back to their own launcher after a restart; the app then offers to set itself again when you open it.
 

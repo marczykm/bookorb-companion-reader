@@ -11,11 +11,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(app: App, onBack: () -> Unit, onLogout: () -> Unit) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var confirmSignOut by remember { mutableStateOf(false) }
     // The same setting the reader checks on every key press, so a change applies straight away.
     val settings = remember { ReaderSettings(context) }
     var volumeKeys by remember { mutableStateOf(settings.volumeKeys) }
@@ -33,6 +36,19 @@ fun SettingsScreen(onBack: () -> Unit) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, e -> if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME) refreshHome() }
         lifecycle.addObserver(observer)
         onDispose { lifecycle.removeObserver(observer) }
+    }
+
+    if (confirmSignOut) {
+        AlertDialog(
+            modifier = with(Display) { Modifier.dialogBorder(MaterialTheme.shapes.extraLarge) },
+            onDismissRequest = { confirmSignOut = false },
+            title = { Text("Sign out?") },
+            text = { Text("You will need to sign in again. Changes that haven't reached the server yet stay queued on this device.") },
+            confirmButton = {
+                TextButton(onClick = { confirmSignOut = false; scope.launch { app.api.logout(); onLogout() } }) { Text("Sign out") }
+            },
+            dismissButton = { TextButton(onClick = { confirmSignOut = false }) { Text("Cancel") } },
+        )
     }
 
     Scaffold(topBar = {
@@ -98,6 +114,10 @@ fun SettingsScreen(onBack: () -> Unit) {
             if (homeOffered && !isDefaultHome) {
                 TextButton(onClick = { context.startActivity(Launcher.settingsIntent()) }) { Text("Choose the Home app in Android settings") }
             }
+
+            Text("Account", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 24.dp, bottom = 8.dp))
+            Text(app.session.serverUrl, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            OutlinedButton(onClick = { confirmSignOut = true }, Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 24.dp)) { Text("Sign out") }
         }
     }
 }

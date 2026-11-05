@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
@@ -104,9 +103,6 @@ fun HomeScreen(app: App, onLogout: () -> Unit, onOpenSettings: () -> Unit, onOpe
                     IconButton(onClick = { load() }) { Icon(Icons.Default.Refresh, "Refresh") }
                     onOpenApps?.let { open -> IconButton(onClick = open) { Icon(Icons.Default.Apps, "All apps") } }
                     IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, "Settings") }
-                    IconButton(onClick = { scope.launch { app.api.logout(); onLogout() } }) {
-                        Icon(Icons.AutoMirrored.Filled.Logout, "Sign out")
-                    }
                 },
             )
         },
